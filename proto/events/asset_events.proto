@@ -1,0 +1,33 @@
+syntax = "proto3";
+package moaje.events.asset;
+
+import "common/resources.proto";
+
+option java_package = "com.moaje.events.asset";
+option java_multiple_files = true;
+
+// 자산 선 차감 완료 이벤트 (AI 분석 및 이력 저장용)
+message BalanceDeductedEvent {
+  string transaction_id = 1;
+  string user_id = 2;
+  string account_token = 3;
+  moaje.common.Money amount = 4;
+  moaje.common.Money remaining_balance = 5; // 차감 후 잔액
+  string created_at = 6;
+}
+
+// 일일 가용 예산 업데이트 이벤트
+message DailyBudgetUpdatedEvent {
+  string user_id = 1;
+  moaje.common.Money old_budget = 2;
+  moaje.common.Money new_budget = 3;
+  string updated_at = 4;
+}
+
+// 멱등성 검증 결과 이벤트 (중복 요청 감지 시 기록용)
+message IdempotencyCheckedEvent {
+  string idempotency_key = 1;
+  string request_type = 2;
+  bool is_duplicate = 3;
+  string checked_at = 4;
+}

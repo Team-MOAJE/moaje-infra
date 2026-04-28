@@ -1,0 +1,31 @@
+syntax = "proto3";
+package moaje.events.banking;
+
+import "common/resources.proto";
+
+option java_package = "com.moaje.events.banking";
+option java_multiple_files = true;
+
+// 대외계 송금 최종 처리 결과 이벤트
+message TransferResultEvent {
+  string transaction_id = 1;
+
+  enum FinalStatus {
+    SUCCESS = 0;
+    FAILURE = 1;
+    CANCELLED = 2; // 망취소/추적 필요상태임.
+  }
+  FinalStatus status = 2;
+
+  string failure_reason = 3;   // 실패 시 사유
+  string kftc_trace_no = 4;    // 금융결제원 거래 고유번호
+  string completed_at = 5;
+}
+
+// 금융망 데이터 동기화 완료 이벤트 (Asset 원장 최신화 트리거)
+message ExternalDataSyncedEvent {
+  string user_id = 1;
+  string bank_code = 2;
+  int32 synced_count = 3;      // 동기화된 거래 건수
+  string sync_timestamp = 4;
+}

@@ -1,0 +1,29 @@
+syntax = "proto3";
+package moaje.grpc.asset;
+
+import "common/resources.proto";
+
+option java_package = "com.moaje.grpc.asset";
+option java_multiple_files = true;
+
+service AssetService {
+  // SAGA 패턴: Banking에서 실패 시 잔액 복구 요청(보상 트랜잭션 실행)
+  rpc RollbackDeduction(RollbackRequest) returns (RollbackResponse);
+
+  // Daily 가용 생활비 조회 (Asset 내부 엔진 구동용)
+  rpc GetDailyBudget(BudgetRequest) returns (BudgetResponse);
+}
+
+message RollbackRequest {
+  string transaction_id = 1;
+  moaje.common.Idempotency idempotency = 2;
+  moaje.common.Money refund_amount = 3;
+}
+
+message RollbackResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message BudgetRequest { string user_id = 1; }
+message BudgetResponse { moaje.common.Money safe_to_spend = 1; }

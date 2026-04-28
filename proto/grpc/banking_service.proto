@@ -1,0 +1,31 @@
+syntax = "proto3";
+package moaje.grpc.banking;
+
+import "common/resources.proto";
+
+option java_package = "com.moaje.grpc.banking";
+option java_multiple_files = true;
+
+service BankingService {
+  // 실시간 이체 실행 (Asset -> Banking)
+  rpc ExecuteTransfer(TransferRequest) returns (TransferResponse);
+}
+
+message TransferRequest {
+  string transaction_id = 1;
+  string account_token = 2;        // Auth에서 발급한 토큰
+  moaje.common.Money amount = 3;
+  string target_bank_code = 4;
+  string target_account_no = 5;
+  moaje.common.Idempotency idempotency = 6;
+}
+
+message TransferResponse {
+  enum Status {
+    SUCCESS = 0;
+    FAILED = 1;
+    UNKNOWN = 2; // 망취소 대상
+  }
+  Status status = 1;
+  string kftc_response_code = 2;
+}
