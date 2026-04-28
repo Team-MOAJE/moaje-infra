@@ -74,4 +74,37 @@
 
 ---
 
+---
+
+## 4. 팀원을 위한 PR 가이드라인
+
+핀테크 협업 관계에서는 Branch와 각 소스코드들의 오염과 혼선을 방지하고자 무조건 PR을 해야합니다.
+
+1.  **최신코드 가져오기**
+    - **dev에서 가져오기**: 작업을 시작하기 전에 항상 dev의 최신 상태를 유지하기 위해, dev에서 소스코드를 내려받습니다.
+    ```bash
+    git checkout dev
+    git pull origin dev
+    ```
+2.  **작업 브랜치 생성**
+    - 기능 단위로 브랜치를 만듭니다.
+    - 네이밍규칙: `feat/기능이름` 또는 `fix/버그이름`
+    ```bash
+    git checkout -b feat/add-banking-proto
+    ```
+3.  **작업완료 이후 푸시**
+    - 작업완료 혹은 코드 수정이후 본인의 브랜치에 올립니다.
+    ```bash
+    git add .
+    git commit -m "feat: Banking 도메인 Kafka 이벤트 규격 추가"
+    git push origin feat/add-banking-proto
+    ```
+4.  ** PR 생성 **
+    - 깃허브에서 `feat/add-banking-proto` → `dev` 방향으로 Pull Request를 생성합니다.
+
+5.  ** PR 리뷰 및 병합(merge) **
+    - 팀원들의 리뷰를 거쳐 `dev`에 합쳐집니다.
+
+---
+
 **위 가이드라인에 따라 작성된 `.proto` 파일은 `moaje-infra` 레포지토리에 반영해 주시기 바랍니다.**
