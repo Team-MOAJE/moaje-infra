@@ -1,0 +1,56 @@
+syntax = "proto3";
+package moaje.grpc.auth;
+
+option java_package = "com.moaje.grpc.auth";
+option java_multiple_files = true;
+
+service AuthService {
+  // JWT Access Token 검증 (Asset/Banking -> Auth)
+  rpc ValidateAccessToken(ValidateAccessTokenRequest) returns (ValidateAccessTokenResponse);
+
+  // MFA 활성 여부 확인 (타 서비스 -> Auth)
+  rpc CheckMfaRequired(CheckMfaRequiredRequest) returns (CheckMfaRequiredResponse);
+
+  // Account Token 유효성 검증 (Banking -> Auth)
+  rpc ValidateAccountToken(ValidateAccountTokenRequest) returns (ValidateAccountTokenResponse);
+}
+
+message ValidateAccessTokenRequest {
+  string transaction_id = 1;
+  string access_token = 2;
+  int64 timestamp = 3;
+}
+
+message ValidateAccessTokenResponse {
+  string transaction_id = 1;
+  bool is_valid = 2;
+  string user_id = 3;   // 검증 성공 시에만 유효하고 실패하면 빈 문자열
+  int64 expires_at = 4; // Unix milliseconds
+  int64 timestamp = 5;
+}
+
+message CheckMfaRequiredRequest {
+  string transaction_id = 1;
+  string user_id = 2;
+  int64 timestamp = 3;
+}
+
+message CheckMfaRequiredResponse {
+  string transaction_id = 1;
+  bool is_mfa_required = 2;
+  int64 timestamp = 3;
+}
+
+message ValidateAccountTokenRequest {
+  string transaction_id = 1;
+  string account_token = 2;
+  int64 timestamp = 3;
+}
+
+message ValidateAccountTokenResponse {
+  string transaction_id = 1;
+  bool is_valid = 2;
+  string user_id = 3; // 검증 성공 시에만...  실패하면 빈 문자열
+  bool is_active = 4;
+  int64 timestamp = 5;
+}

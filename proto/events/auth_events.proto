@@ -1,0 +1,43 @@
+syntax = "proto3";
+package moaje.events.auth;
+
+option java_package = "com.moaje.events.auth";
+option java_multiple_files = true;
+
+// 회원가입 완료 이벤트 
+message UserRegisteredEvent {
+  string transaction_id = 1;
+  string user_id = 2;
+  int64 timestamp = 3;
+}
+
+// 로그인 성공 이벤트
+message UserLoggedInEvent {
+  string transaction_id = 1;
+  string user_id = 2;
+  string device_info = 3;
+  int64 timestamp = 4;
+}
+
+// Refresh Token 폐기 이벤트
+message RefreshTokenRevokedEvent {
+  string transaction_id = 1;
+  string user_id = 2;
+  int64 timestamp = 3;
+}
+
+// MFA 상태 변경 이벤트
+message MfaStatusChangedEvent {
+  string transaction_id = 1;
+  string user_id = 2;
+  bool is_enabled = 3;
+  int64 timestamp = 4;
+}
+
+// Account Token 생성 이벤트
+message AccountTokenCreatedEvent {
+  string transaction_id = 1;
+  string user_id = 2;
+  string account_token = 3;
+  int64 timestamp = 4;
+}
