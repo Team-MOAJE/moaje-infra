@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package moaje.events.work;
+
+option java_package = "com.moaje.events.work";
+option java_multiple_files = true;
+
+// Daily Limit 계산 완료 이벤트
+// Producer: Work Service
+// Consumer: Asset Service, 알림 서비스
+message SpendingAnalyzedEvent {
+  string transaction_id = 1;
+  string user_id        = 2;
+  string daily_limit    = 3;  // 산출된 일일 가용 생활비 (원)
+  string advice         = 4;  // AI 생성 맞춤 조언 메시지
+  int64  timestamp      = 5;
+}
+
+// 학사 일정 등록/수정 이벤트
+// Producer: Work Service
+// Consumer: Asset Service
+message ScheduleUpdatedEvent {
+  string transaction_id = 1;
+  string user_id        = 2;
+  string event_type     = 3;  // EXAM | MT | FESTIVAL | VACATION | EMPLOYMENT
+  string event_buffer   = 4;  // 해당 이벤트 예상 추가 지출 (원)
+  int64  timestamp      = 5;
+}
+
+// FDS 이상거래 탐지 알림 이벤트
+// Producer: Work Service
+// Consumer: API Gateway, 알림 서비스
+message FdsAlertEvent {
+  string transaction_id = 1;
+  string user_id        = 2;
+  string risk_level     = 3;  // LOW | MEDIUM | HIGH
+  string reason_code    = 4;  // 탐지 사유 (예: ABNORMAL_AMOUNT | ABNORMAL_TIME)
+  int64  timestamp      = 5;
+}
