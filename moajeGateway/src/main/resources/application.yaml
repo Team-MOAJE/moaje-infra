@@ -1,0 +1,92 @@
+spring:
+  application:
+    name: moajeGateway
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2s
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+            - id: auth-module
+              uri: ${USER_SERVICE_URI:http://localhost:8081}
+              predicates:
+                - Path=/api/auth/**
+            - id: account-module
+              uri: ${ACCOUNT_SERVICE_URI:http://localhost:8082}
+              predicates:
+                - Path=/api/account/**
+            - id: banking-module
+              uri: ${PAYMENT_SERVICE_URI:http://localhost:8083}
+              predicates:
+                - Path=/api/banking/**
+            - id: work-module
+              uri: ${TRANSFER_SERVICE_URI:http://localhost:8084}
+              predicates:
+                - Path=/api/work/**
+
+server:
+  forward-headers-strategy: framework
+  tomcat:
+    max-http-form-post-size: 1MB
+    max-swallow-size: 1MB
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+      group:
+        readiness:
+          include: readinessState,redis
+        liveness:
+          include: livenessState
+  info:
+    env:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
+info:
+  app:
+    name: ${spring.application.name}
+    description: Moaje fintech Spring Cloud Gateway
+    version: ${APP_VERSION:local}
+
+moaje:
+  gateway:
+    guard:
+      trace-header-name: X-Trace-Id
+      internal-headers:
+        - X-User-Id
+        - X-User-Role
+        - X-User-Roles
+        - X-Authenticated-User-Id
+      idempotency:
+        enabled: true
+        header-name: Idempotency-Key
+        key-prefix: "moaje:gateway:idempotency:"
+        ttl: 10m
+        fail-closed: true
+        require-for-unsafe-methods: false
+        max-body-bytes: 1048576
+        methods:
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+        excluded-path-prefixes:
+          - /actuator
