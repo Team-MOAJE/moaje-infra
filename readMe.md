@@ -1,110 +1,290 @@
-# 📚 moaje-infra 기술 가이드 및 컨벤션
+﻿# Moaje Infra
 
-본 문서는 `moaje` 프로젝트의 공통 인프라(Kafka, Redis) 구성 설명과 도메인 간 통신을 위한 Protobuf(`.proto`) 작성 가이드라인을 담고 있습니다.
+Moaje 서비스 개발에 필요한 공통 인프라를 Docker Compose로 실행하는 저장소입니다.
 
----
+현재 구성은 Spring Boot 기반 MSA 모듈을 로컬 IDE에서 실행하고, Redis/Kafka/Nginx/관측성 도구는 Docker Compose로 띄우는 개발 환경을 기준으로 합니다.
 
-## 1. docker-compose.yaml 상세 가이드
+## 구성 요소
 
-이 파일은 프로젝트 실행에 필요한 인프라 서버들을 한 번에 실행하는 설계도입니다. 각 설정의 핵심 의미는 다음과 같습니다.
+| Service | Container | Port | Purpose |
+| --- | --- | --- | --- |
+| Nginx | `moaje-nginx` | `80`, `443` | Gateway 앞단 reverse proxy, SSL termination |
+| Redis | `moaje-redis` | `6379` | 캐시, 세션, 멱등성 키 저장소 |
+| Kafka | `moaje-kafka` | `9092` | MSA 간 비동기 이벤트 메시징 |
+| Kafka UI | `moaje-kafka-ui` | `8989` | Kafka topic/message 확인 UI |
+| Prometheus | `moaje-prometheus` | `9090` | Spring Boot Actuator metrics 수집 |
+| Grafana | `moaje-grafana` | `3000` | Prometheus 기반 대시보드 UI |
 
-### 🔹 공통 설정
+## 디렉터리 구조
 
-- **`version: '3.8'`**: 도커 컴포즈 파일 규격 버전입니다.
-- **`services:`**: 실행할 컨테이너(소프트웨어) 목록을 정의합니다.
+```text
+moaje-infra/
+├─ docker-compose.yaml
+├─ nginx/
+│  └─ conf.d/
+│     └─ default.conf
+├─ monitoring/
+│  ├─ prometheus/
+│  │  └─ prometheus.yml
+│  └─ grafana/
+│     ├─ dashboards/
+│     │  └─ moaje-gateway-overview.json
+│     └─ provisioning/
+│        ├─ dashboards/
+│        │  └─ dashboards.yml
+│        └─ datasources/
+│           └─ prometheus.yml
+└─ moajeGateway/
+```
 
-### 🔹 [Redis] - 고속 데이터 캐시 및 세션 관리
+## 사전 준비
 
-- **`image: redis:latest`**: 최신 버전의 Redis 이미지를 사용합니다.
-- **`container_name: moaje-redis`**: 컨테이너 식별 이름입니다.
-- **`platform: linux/amd64`**: Mac(Apple Silicon) 사용자와 Windows 사용자 간의 이미지 호환성을 보장합니다.
-- **`ports: - "6379:6379"`**: 로컬 PC의 6379 포트를 컨테이너 내부 6379 포트와 연결합니다.
-- **`restart: always`**: 에러로 인해 꺼질 경우 도커가 자동으로 다시 살려내도록 설정합니다.
+- Docker Desktop
+- Java 17
+- IntelliJ IDEA 또는 선호하는 IDE
 
-### 🔹 [Kafka] - 비동기 메시지 큐 (KRaft 방식)
+Docker Desktop이 실행 중이어야 `docker compose up` 명령이 정상 동작합니다.
 
-주키퍼(Zookeeper) 없이 카프카 자체가 클러스터를 관리하는 최신 **KRaft** 방식을 채택했습니다. `KAFKA_CFG_`에서 **CFG**는 설정(Configuration)을 의미합니다.
+## 실행 방법
 
-- **`KAFKA_CFG_NODE_ID=1`**: 이 카프카 노드의 고유 번호입니다.
-- **`KAFKA_CFG_PROCESS_ROLES=controller,broker`**: 이 노드가 관리자(Controller)와 일꾼(Broker) 역할을 동시에 수행함을 선언합니다.
-- **`KAFKA_CFG_LISTENERS`**: 데이터 통신용(9092)과 내부 관리용(9093) 통로를 개방합니다.
-- **`KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP`**: 현재 개발 환경은 암호화 없는 `PLAINTEXT`를 사용하지만, 실 서비스 도입 시에는 보안을 위해 `SSL` 적용이 필요합니다.
-- **`KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092`**: 외부 서비스(Spring Boot/FastAPI)가 접속할 때 사용하는 공식 주소(명함)입니다.
-- **`KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@127.0.0.1:9093`**: KRaft 모드에서 의사결정을 내릴 투표권자 명단입니다.
-- **`KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER`**: 관리용 통로의 이름을 지정합니다.
+인프라 컨테이너를 실행합니다.
 
-### 🔹 [Kafka-UI] - 메시지 모니터링 도구
+```powershell
+cd C:\moaje\moaje-infra
+docker compose up -d
+```
 
-- **`ports: - "8989:8080"`**: Spring Boot 기본 포트(8080)와의 충돌을 피하기 위해 외부 접속 포트를 **8989**로 변경했습니다. 웹 브라우저에서 `http://localhost:8989`로 접속하세요.
-- **`KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092`**: UI가 정보를 가져올 대상 카프카 서버 주소입니다.
+상태를 확인합니다.
 
----
+```powershell
+docker compose ps
+```
 
-## 2. 디렉터리 구조 및 용도 설명
+로그를 확인합니다.
 
-`moaje-infra/proto` 내의 디렉터리는 통신 성격에 따라 엄격히 구분합니다.
+```powershell
+docker compose logs -f
+```
 
-| 디렉터리      | 용도                           | 통신 방식 | 예시                      |
-| :------------ | :----------------------------- | :-------- | :------------------------ |
-| **`common/`** | 공용 데이터 구조               | -         | `Money`, `IdempotencyKey` |
-| **`grpc/`**   | 서비스 간 동기 통신 인터페이스 | **gRPC**  | 잔액 조회, 복호화 요청    |
-| **`events/`** | 비동기 이벤트 메시지 규격      | **Kafka** | 송금 완료, AI 분석 요청   |
+중지합니다.
 
-- **`common/`**: 모든 도메인에서 재사용되는 데이터 구조를 정의하여 일관성을 유지합니다.
-- **`grpc/`**: "지금 당장 데이터를 줘"와 같은 실시간 요청/응답 시나리오에 사용합니다.
-- **`events/`**: "이런 일이 발생했어"라고 알리는 공고 형태이며, 발행자는 수신자를 기다리지 않습니다.
+```powershell
+docker compose down
+```
 
----
+볼륨까지 삭제하려면 아래 명령을 사용합니다. Redis/Kafka/Prometheus/Grafana 데이터와 로컬 개발용 Nginx 인증서가 삭제됩니다.
 
-## 3. 팀원을 위한 .proto 작성 가이드라인
+```powershell
+docker compose down -v
+```
 
-폴리글랏(Kotlin, Python) 환경에서의 원활한 통신을 위해 아래 규칙을 반드시 준수해야 합니다.
+## 접속 정보
 
-1.  **네이밍 컨벤션 (Naming Convention)**
-    - **필드명**: 반드시 **`snake_case`**를 사용합니다. (예: `user_id`, `amount_value`)
-    - **메시지명**: **`PascalCase`**를 사용합니다. (예: `TransferRequest`)
-2.  **필드 태그 번호 고정**
-    - 필드 옆의 숫자(`= 1;`)는 데이터의 고유 주소입니다. 한 번 부여된 번호는 **절대 수정하거나 삭제하지 마세요.** 번호를 바꾸면 구버전과 신버전 서비스 간에 데이터가 깨집니다.
-3.  **필수 메타데이터 포함**
-    - 모든 메시지에는 로그 추적용 `transaction_id`와 생성 시각인 `timestamp`를 포함할 것을 강력히 권장합니다.
-4.  **하위 호환성 유지 (Backward Compatibility)**
-    - 기존 필드가 더 이상 필요 없어져도 삭제하지 마세요. 삭제가 필요하다면 `reserved` 키워드를 사용하여 번호를 예약해야 통신 에러를 방지할 수 있습니다.
-5.  **공통 타입 재사용**
-    - 금액(Money)이나 공통 헤더는 `common/` 디렉터리에 정의된 규격을 `import`하여 사용함으로써 중복 정의를 방지합니다.
+| Tool | URL |
+| --- | --- |
+| Nginx HTTP | http://localhost |
+| Nginx HTTPS | https://localhost |
+| Gateway direct | http://localhost:8080 |
+| Kafka UI | http://localhost:8989 |
+| Prometheus | http://localhost:9090 |
+| Prometheus targets | http://localhost:9090/targets |
+| Grafana | http://localhost:3000 |
 
----
+Grafana 초기 로그인 정보:
 
----
+```text
+ID: admin
+PW: admin
+```
 
-## 4. 팀원을 위한 PR 가이드라인
+Grafana에 로그인한 뒤 `Dashboards > Moaje > Moaje Gateway Overview`에서 기본 대시보드를 확인할 수 있습니다.
 
-핀테크 협업 관계에서는 Branch와 각 소스코드들의 오염과 혼선을 방지하고자 무조건 PR을 해야합니다.
+## 전체 요청 흐름
 
-1.  **최신코드 가져오기**
-    - **dev에서 가져오기**: 작업을 시작하기 전에 항상 dev의 최신 상태를 유지하기 위해, dev에서 소스코드를 내려받습니다.
-    ```bash
-    git checkout dev
-    git pull origin dev
-    ```
-2.  **작업 브랜치 생성**
-    - 기능 단위로 브랜치를 만듭니다.
-    - 네이밍규칙: `feat/기능이름` 또는 `fix/버그이름`
-    ```bash
-    git checkout -b feat/add-banking-proto
-    ```
-3.  **작업완료 이후 푸시**
-    - 작업완료 혹은 코드 수정이후 본인의 브랜치에 올립니다.
-    ```bash
-    git add .
-    git commit -m "feat: Banking 도메인 Kafka 이벤트 규격 추가"
-    git push origin feat/add-banking-proto
-    ```
-4.  ** PR 생성 **
-    - 깃허브에서 `feat/add-banking-proto` → `dev` 방향으로 Pull Request를 생성합니다.
+개발 환경의 기본 요청 흐름은 다음과 같습니다.
 
-5.  ** PR 리뷰 및 병합(merge) **
-    - 팀원들의 리뷰를 거쳐 `dev`에 합쳐집니다.
+```text
+Client
+  -> http://localhost 또는 https://localhost
+  -> Nginx container
+  -> host.docker.internal:8080
+  -> moajeGateway Spring Boot app, IDE 실행
+  -> 각 MSA module
+```
 
----
+Nginx는 `http://localhost` 요청을 `https://localhost`로 redirect합니다.
 
-**위 가이드라인에 따라 작성된 `.proto` 파일은 `moaje-infra` 레포지토리에 반영해 주시기 바랍니다.**
+`https://localhost`는 로컬 개발용 self-signed 인증서를 사용하므로 브라우저에서 보안 경고가 표시될 수 있습니다. 개발 환경에서는 경고를 수락하고 진행하면 됩니다.
+
+## Spring Boot 앱 실행 방식
+
+현재 개발 구조에서는 각 MSA 애플리케이션을 Docker 컨테이너로 띄우지 않고 IDE에서 직접 실행합니다.
+
+예를 들어 `moajeGateway`는 IntelliJ에서 Spring Boot 애플리케이션으로 실행합니다.
+
+```text
+moajeGateway Spring Boot App -> IDE 실행
+Nginx/Redis/Kafka/Prometheus/Grafana -> docker compose 실행
+```
+
+IDE에서 실행되는 Spring Boot 앱은 Docker 밖의 호스트 프로세스이므로 아래 주소를 사용합니다.
+
+```text
+Redis: localhost:6379
+Kafka: localhost:9092
+Gateway direct: http://localhost:8080
+Gateway via Nginx: https://localhost
+Gateway Actuator: http://localhost:8080/actuator
+Gateway Prometheus endpoint: http://localhost:8080/actuator/prometheus
+```
+
+Prometheus는 Docker 컨테이너 안에서 호스트의 Gateway 앱을 바라봐야 하므로 `host.docker.internal:8080`을 scrape target으로 사용합니다.
+
+```yaml
+scrape_configs:
+  - job_name: moaje-gateway
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - host.docker.internal:8080
+```
+
+Gateway 포트를 변경하면 아래 파일의 target도 같이 수정해야 합니다.
+
+```text
+monitoring/prometheus/prometheus.yml
+nginx/conf.d/default.conf
+```
+
+## Nginx
+
+Nginx는 Gateway 앞단 reverse proxy와 SSL termination 용도로 사용합니다.
+
+현재 설정 파일:
+
+```text
+nginx/conf.d/default.conf
+```
+
+기본 proxy target:
+
+```nginx
+upstream moaje_gateway {
+    server host.docker.internal:8080;
+}
+```
+
+즉, Docker Compose로 실행되는 Nginx가 IDE에서 실행 중인 Gateway 앱으로 요청을 전달합니다.
+
+### 로컬 SSL 인증서
+
+`nginx-cert-init` 컨테이너가 최초 실행 시 named volume `nginx-certs`에 로컬 개발용 self-signed 인증서를 자동 생성합니다.
+
+생성되는 인증서 경로는 컨테이너 내부 기준입니다.
+
+```text
+/etc/nginx/certs/local.crt
+/etc/nginx/certs/local.key
+```
+
+이 인증서는 로컬 개발용입니다. 운영 또는 외부 공개 환경에서는 실제 도메인 인증서로 교체해야 합니다.
+
+운영 인증서를 사용할 때는 다음 중 하나를 선택할 수 있습니다.
+
+1. `nginx-certs` volume에 운영 인증서를 배치
+2. 호스트의 인증서 디렉터리를 `/etc/nginx/certs`로 bind mount
+3. Let's Encrypt/Certbot 또는 별도 인증서 자동화 도구 사용
+
+운영 인증서 파일명은 현재 Nginx 설정 기준으로 아래 이름을 맞추면 됩니다.
+
+```text
+local.crt
+local.key
+```
+
+파일명을 다르게 쓰려면 `nginx/conf.d/default.conf`의 `ssl_certificate`, `ssl_certificate_key` 값을 수정하세요.
+
+## Kafka 접속 주소
+
+Kafka는 호스트 애플리케이션과 Docker 내부 컨테이너에서 사용하는 주소가 다릅니다.
+
+| Client | Bootstrap Server |
+| --- | --- |
+| IDE에서 실행하는 Spring Boot 앱 | `localhost:9092` |
+| Docker Compose 내부 컨테이너 | `kafka:29092` |
+
+Kafka UI는 Compose 내부 컨테이너이므로 `kafka:29092`로 Kafka에 접속합니다.
+
+## Redis 접속 주소
+
+| Client | Redis Host |
+| --- | --- |
+| IDE에서 실행하는 Spring Boot 앱 | `localhost:6379` |
+| Docker Compose 내부 컨테이너 | `redis:6379` |
+
+`moajeGateway`는 기본 설정에서 Redis를 `localhost:6379`로 바라봅니다.
+
+## 모니터링
+
+`moajeGateway`는 Spring Boot Actuator와 Micrometer Prometheus registry를 통해 metrics를 노출합니다.
+
+주요 endpoint:
+
+```text
+http://localhost:8080/actuator/health
+http://localhost:8080/actuator/metrics
+http://localhost:8080/actuator/prometheus
+```
+
+Prometheus는 `/actuator/prometheus`를 수집하고, Grafana는 Prometheus datasource를 자동으로 등록합니다.
+
+기본 대시보드에는 다음 항목이 포함됩니다.
+
+- Request rate
+- 5xx error rate
+- HTTP request rate by status
+- HTTP latency p95
+- JVM memory used
+- JVM threads
+
+## 운영 전 주의사항
+
+현재 compose 구성은 로컬 개발 편의를 위한 설정입니다.
+
+운영 또는 외부 공개 환경에서는 최소한 아래 항목을 별도로 검토해야 합니다.
+
+- Redis/Kafka 인증 및 네트워크 접근 제한
+- Kafka PLAINTEXT 대신 SSL/SASL 적용
+- Grafana 기본 비밀번호 변경
+- Nginx 운영 도메인과 실제 TLS 인증서 적용
+- Nginx SSL cipher/HSTS 정책 검토
+- Actuator endpoint 외부 노출 제한
+- Prometheus/Grafana 데이터 보존 정책
+- Docker volume 백업 정책
+
+## 자주 쓰는 명령어
+
+```powershell
+# 인프라 실행
+cd C:\moaje\moaje-infra
+docker compose up -d
+
+# 컨테이너 상태 확인
+docker compose ps
+
+# 전체 로그 확인
+docker compose logs -f
+
+# 특정 서비스 로그 확인
+docker compose logs -f nginx
+docker compose logs -f kafka
+
+# Nginx 설정만 재시작
+docker compose restart nginx
+
+# 인프라 중지
+docker compose down
+
+# 인프라 중지 및 볼륨 삭제
+docker compose down -v
+```
