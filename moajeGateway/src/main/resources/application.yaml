@@ -12,7 +12,7 @@ spring:
         webmvc:
           routes:
             - id: auth-module
-              uri: ${USER_SERVICE_URI:http://localhost:8081}
+              uri: ${AUTH_SERVICE_URI:http://localhost:8081}
               predicates:
                 - Path=/api/auth/**
             - id: account-module
@@ -20,11 +20,11 @@ spring:
               predicates:
                 - Path=/api/account/**
             - id: banking-module
-              uri: ${PAYMENT_SERVICE_URI:http://localhost:8083}
+              uri: ${BANKING_SERVICE_URI:http://localhost:8083}
               predicates:
                 - Path=/api/banking/**
             - id: work-module
-              uri: ${TRANSFER_SERVICE_URI:http://localhost:8084}
+              uri: ${WORK_SERVICE_URI:http://localhost:8084}
               predicates:
                 - Path=/api/work/**
 
