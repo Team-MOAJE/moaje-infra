@@ -39,6 +39,7 @@ class GatewayGuardFilter(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
+    // doFilterInternal, 하나의 요청당 한번 실행
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
@@ -49,7 +50,7 @@ class GatewayGuardFilter(
             ?: UUID.randomUUID().toString() // x-trace-Id 값이 없으면 UUID 문자열 생성, 있으면 가져오기
         response.setHeader(properties.traceHeaderName, traceId)
 
-        // 외부에서 온 Header 무시, gateWay에서 추적용 헤더 및 기본 보안헤더 강제로 over-write
+        // 외부에서 온 Header 무시, gateway에서 추적용 헤더 및 기본 보안헤더를 추가한 guardRequest (wrapper request)
         val guardedRequest = request.withGuardHeaders(traceId)
 
         // 멱등성 검증
@@ -116,6 +117,8 @@ class GatewayGuardFilter(
         }
     }
 
+    // 멱등성 키 검사가 필요한지를 check
+    // redis에 이미 key가 있다면 검사하지 않고, 키가 있으면 검사함
     private fun tryAcquireIdempotencyKey(
         response: HttpServletResponse,
         redisKey: String,
@@ -123,10 +126,11 @@ class GatewayGuardFilter(
         traceId: String,
     ): Boolean? {
         return try {
+            // redis 에서 해당 멱등성 키 선점 성공 시 True, 선점 실패 시 False
             val acquired = redisTemplate.opsForValue()
                 .setIfAbsent(redisKey, redisValue, properties.idempotency.ttl) == true
 
-            if (!acquired) {
+            if (!acquired) { // KEY값 (IdempotencyKey)는 같은데 body가 다른경우 -> Key만 재사용했단 소리
                 val previousValue = redisTemplate.opsForValue().get(redisKey)
                 val code = if (previousValue == redisValue) {
                     "DUPLICATE_REQUEST"
@@ -148,13 +152,13 @@ class GatewayGuardFilter(
             handleRedisFailure(response, traceId, ex)
         }
     }
-    // 클라이언트가 위조해서 보낼 수 있는 내부 헤더값들을 제거 (HttpServletRequest 확장함수)
+    // 클라이언트가 위조해서 보낼 수 있는 내부 헤더값들을 제거하고 gateway가 관리하는 traceId만 다시 넣는다 (HttpServletRequest 확장함수)
     // Remove internal headers that could be used to tamper with the request
     private fun HttpServletRequest.withGuardHeaders(traceId: String): HttpServletRequest {
-        val sanitizedHeaders = properties.internalHeaders + setOf(properties.traceHeaderName)
+        val blockedHeaderNames = properties.internalHeaders + setOf(properties.traceHeaderName)
         return SanitizedHeaderHttpServletRequest(
             request = this,
-            blockedHeaders = sanitizedHeaders,
+            blockedHeaders = blockedHeaderNames,
             addedHeaders = mapOf(properties.traceHeaderName to traceId),
         )
     }

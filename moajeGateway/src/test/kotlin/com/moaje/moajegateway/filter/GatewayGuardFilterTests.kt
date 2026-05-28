@@ -26,6 +26,7 @@ class GatewayGuardFilterTests {
     @Test
     @DisplayName("최초 멱등 요청은 통과하고 내부 헤더는 제거한다")
     fun passesFirstIdempotentRequestAndSanitizesInternalHeaders() {
+
         val valueOperations = valueOperations(setIfAbsentResult = true)
         val redisTemplate = redisTemplate(valueOperations)
         val filter = GatewayGuardFilter(redisTemplate, objectMapper, properties)
@@ -37,11 +38,13 @@ class GatewayGuardFilterTests {
         val response = MockHttpServletResponse()
         var filteredRequest: HttpServletRequest? = null
 
-        filter.doFilter(request, response, FilterChain { servletRequest, servletResponse ->
+        // 후행 람다식, doFilter의 마지막 인자인 FilterChain은 메서드가 딱 하나만 있는 Single Abstract Method(SAM) 이라서
+        // 인터페이스를 직접 구현하는 대신에, 그냥 람다식({}) 으로 퉁칠 수 있게 해줌!
+        filter.doFilter(request, response) { servletRequest, servletResponse ->
             filteredRequest = servletRequest as HttpServletRequest
             servletResponse as MockHttpServletResponse
             servletResponse.status = HttpStatus.OK.value()
-        })
+        }
 
         assertThat(response.status).isEqualTo(HttpStatus.OK.value())
         assertThat(response.getHeader("X-Trace-Id")).isEqualTo("client-trace")

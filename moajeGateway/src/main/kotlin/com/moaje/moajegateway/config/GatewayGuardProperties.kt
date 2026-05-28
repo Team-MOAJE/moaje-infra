@@ -20,9 +20,9 @@ data class GatewayGuardProperties(
         var keyPrefix: String = "moaje:gateway:idempotency:",
         var ttl: Duration = Duration.ofMinutes(10),
         var failClosed: Boolean = true,
-        var requireForUnsafeMethods: Boolean = false,
+        var requireForUnsafeMethods: Boolean = true,
         var maxBodyBytes: Int = 1_048_576,
         var methods: Set<String> = setOf("POST", "PUT", "PATCH", "DELETE"),
-        var excludedPathPrefixes: Set<String> = setOf("/actuator"),
+        var excludedPathPrefixes: Set<String> = setOf("/actuator", "/health", "/metrics","/prometheus"),
     )
 }
