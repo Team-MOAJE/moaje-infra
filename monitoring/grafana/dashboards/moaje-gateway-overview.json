@@ -1,0 +1,66 @@
+﻿{
+  "uid": "moaje-gateway-overview",
+  "title": "Moaje Gateway Overview",
+  "tags": ["moaje", "gateway", "spring-boot"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": {"from": "now-15m", "to": "now"},
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Request Rate",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [{"refId": "A", "expr": "sum(rate(http_server_requests_seconds_count{application=\"moajeGateway\"}[1m]))", "legendFormat": "req/s"}],
+      "fieldConfig": {"defaults": {"unit": "reqps", "decimals": 2}, "overrides": []},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "auto"}
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "5xx Error Rate",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "targets": [{"refId": "A", "expr": "sum(rate(http_server_requests_seconds_count{application=\"moajeGateway\", status=~\"5..\"}[1m]))", "legendFormat": "5xx/s"}],
+      "fieldConfig": {"defaults": {"unit": "reqps", "decimals": 2, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 0.1}]}}, "overrides": []},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "auto"}
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "HTTP Request Rate by Status",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "targets": [{"refId": "A", "expr": "sum(rate(http_server_requests_seconds_count{application=\"moajeGateway\"}[1m])) by (status)", "legendFormat": "{{status}}"}],
+      "fieldConfig": {"defaults": {"unit": "reqps"}, "overrides": []},
+      "options": {"tooltip": {"mode": "multi", "sort": "none"}, "legend": {"showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": []}}
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "HTTP Latency p95",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "targets": [{"refId": "A", "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=\"moajeGateway\"}[5m])) by (le, uri))", "legendFormat": "{{uri}}"}],
+      "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []},
+      "options": {"tooltip": {"mode": "multi", "sort": "none"}, "legend": {"showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": []}}
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "JVM Memory Used",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "targets": [{"refId": "A", "expr": "sum(jvm_memory_used_bytes{application=\"moajeGateway\"}) by (area)", "legendFormat": "{{area}}"}],
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "options": {"tooltip": {"mode": "multi", "sort": "none"}, "legend": {"showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": []}}
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "JVM Threads",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "targets": [{"refId": "A", "expr": "jvm_threads_live_threads{application=\"moajeGateway\"}", "legendFormat": "live threads"}],
+      "fieldConfig": {"defaults": {"unit": "short"}, "overrides": []},
+      "options": {"tooltip": {"mode": "multi", "sort": "none"}, "legend": {"showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": []}}
+    }
+  ]
+}
