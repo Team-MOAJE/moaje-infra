@@ -12,21 +12,21 @@ spring:
         webmvc:
           routes:
             - id: auth-module
-              uri: ${AUTH_SERVICE_URI:http://localhost:8081}
+              uri: ${AUTH_SERVICE_URI:http://localhost:8085}
               predicates:
-                - Path=/api/auth/**
-            - id: account-module
-              uri: ${ACCOUNT_SERVICE_URI:http://localhost:8082}
+                - Path=/api/v1/auth/**
+            - id: asset-module
+              uri: ${ASSET_SERVICE_URI:http://localhost:8082}
               predicates:
-                - Path=/api/account/**
+                - Path=/api/v1/assets/**
             - id: banking-module
               uri: ${BANKING_SERVICE_URI:http://localhost:8083}
               predicates:
-                - Path=/api/banking/**
+                - Path=/api/v1/banking/**
             - id: work-module
               uri: ${WORK_SERVICE_URI:http://localhost:8084}
               predicates:
-                - Path=/api/work/**
+                - Path=/api/v1/work/**
 
 server:
   forward-headers-strategy: framework
