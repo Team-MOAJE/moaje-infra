@@ -1,0 +1,2 @@
+# Linux containers must receive LF shell scripts even after Windows checkout.
+*.sh text eol=lf

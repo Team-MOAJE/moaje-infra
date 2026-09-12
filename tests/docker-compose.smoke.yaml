@@ -1,0 +1,16 @@
+# 테스트 실행 중에만 사용한다. Auth 팀의 운영 JWT 규격이나 키를 대체하지 않는다.
+services:
+  gateway:
+    environment:
+      AUTH_JWT_ISSUER: moaje-compose-smoke
+      AUTH_JWT_AUDIENCE: moaje-compose-smoke-api
+      AUTH_JWT_ALGORITHM: RS256
+      AUTH_JWT_JWK_SET_URI: http://localhost:18555/jwks.json
+  jwks-fixture:
+    image: nginx:1.27-alpine
+    profiles: ["apps"]
+    network_mode: service:gateway
+    volumes:
+      - ${MOAJE_SMOKE_DIR:-./.local/smoke}:/usr/share/nginx/html:ro
+      - ./tests/jwks-nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: "no"
