@@ -17,3 +17,8 @@ out/
 
 # Generated proto outputs
 /proto/gen/
+
+# Runtime configuration and locally generated private keys
+.env
+/certs/
+/.local/
