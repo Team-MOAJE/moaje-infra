@@ -117,14 +117,14 @@ Asset V2는 앞선 컬럼 추가가 일부 적용됐습니다. 따라서 단순 
 | Banking REQUESTED·5xx·Mock 손상 조회 보강 | 현재 자동 복구의 빈 구간. 먼저 실패 재현 테스트 필요 |
 | Auth JWT 규격·개설 개인정보 공급 | Auth 회의 후 설정/계약 구현 |
 | Work 시간대·중복 소비·RPC 인가 | Work 회의 후 개발 |
-| Auth·Work Compose 등록 | 실행 가능한 최소 커밋과 시작 명령·포트·환경변수를 받은 후 추가. 임의 토픽/가짜 서비스는 만들지 않음. [팀원 체크리스트](learning/infra.md#7-아직-공유되지-않은-authwork-연결-준비) |
+| Auth·Work Compose 등록 | 실행 가능한 최소 커밋과 시작 명령·포트·환경변수를 받은 후 추가. 임의 토픽/가짜 서비스는 만들지 않음. [팀원 체크리스트](../readMe.md#authwork-합류-준비) |
 | 시간 타입·DB 시간대 통일 | LocalDateTime과 Instant의 저장 표현이 달라 직접 비교하지 않도록 검토 |
 | Asset→Work Publisher·운영자 API | Lease·제한 재시도·인증·감사 필요 |
 | Swagger | 네 모듈 기동·연동 확인 이후 별도 진행. 이번에는 추가하지 않음 |
 
 ## 6. 문서 정리 기록
 
-학습문서는 [Banking](learning/banking.md), [Asset](learning/asset.md), [Mock](learning/mock-banking.md), [Infra](learning/infra.md) 각각 하나만 유지합니다. ADR은 [adr](adr)에 모으며 각 저장소 README는 진입 링크만 남깁니다.
+공개 문서는 이 기록과 [ADR](adr), 저장소 README로 구성합니다. 최초 통합 때 만든 모듈별 학습문서 4개는 이후 사용자 요청에 따라 로컬에 보존하고 Git 추적에서 제외했습니다. 과거 커밋과 기존 브랜치의 파일까지 삭제한 것은 아닙니다. 아래 표는 최초 통합 당시의 이동 기록이며, 학습문서는 현재 공개 제공 대상이 아닙니다.
 
 | 이전 문서 묶음 | 보존한 위치 |
 |---|---|

@@ -73,4 +73,4 @@ Lease는 중복 처리를 줄이지만, lease 만료 뒤 늦은 응답이 돌아
 - `TransferControllerLookupTest`
 - `BankingTransferReversedStateTest`
 - `TransferApplicationServiceIdempotencyJpaTest`
-- `moaje-infra/docs/learning/asset.md`
+- [개발 기록과 검증 결과](../phase-history-and-retrospective.md#verification)
