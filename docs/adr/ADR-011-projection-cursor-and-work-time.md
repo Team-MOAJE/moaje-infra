@@ -39,4 +39,4 @@
 - `AssetWorkEventPolicyTest`
 - `GatewayJwtRoutingTest`
 - `RedisSnapshotCursorIntegrationTest` (별도 Redis 실행 필요)
-- [학습 및 검증 기록](/C:/moaje/moaje-infra/docs/phase-history-and-retrospective.md)
+- [개발 기록과 검증 결과](../phase-history-and-retrospective.md)

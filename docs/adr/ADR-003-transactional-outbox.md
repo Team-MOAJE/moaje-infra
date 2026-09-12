@@ -48,6 +48,6 @@ Kafka producer 설정은 Kafka Client 3.7.1 기준으로 확인했고, Phase 3�
 
 - `TransferCommandServiceIdempotencyTest`
 - `BankingOutboxPublisherTest`
-- `moaje-infra/docs/learning/banking.md`
+- [개발 기록과 검증 결과](../phase-history-and-retrospective.md#verification)
 - ADR-005
 - ADR-004
