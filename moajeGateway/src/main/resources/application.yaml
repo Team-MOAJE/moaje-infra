@@ -1,11 +1,6 @@
 spring:
   application:
     name: moajeGateway
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      timeout: 2s
   cloud:
     gateway:
       server:
@@ -47,7 +42,7 @@ management:
       show-details: never
       group:
         readiness:
-          include: readinessState,redis
+          include: readinessState
         liveness:
           include: livenessState
   info:
@@ -68,6 +63,15 @@ info:
 
 moaje:
   gateway:
+    jwt:
+      # 회의 후 .env에 네 값을 입력한다. issuer는 Auth의 iss, audience는 앱 API용 aud와 정확히 같아야 한다.
+      # jwk-set-uri는 공개키 목록 URL이며 비밀키가 아니다. algorithm에는 합의한 RS256 등의 값을 넣는다.
+      # 빈 값은 임시 인증 허용이 아니라 요청 차단이다. 실제 JWT나 개인정보는 이 파일에 적지 않는다.
+      issuer: ${AUTH_JWT_ISSUER:}
+      audience: ${AUTH_JWT_AUDIENCE:}
+      jwk-set-uri: ${AUTH_JWT_JWK_SET_URI:}
+      algorithm: ${AUTH_JWT_ALGORITHM:}
+      public-endpoints: ${AUTH_PUBLIC_ENDPOINTS:}
     guard:
       trace-header-name: X-Trace-Id
       internal-headers:
@@ -75,18 +79,3 @@ moaje:
         - X-User-Role
         - X-User-Roles
         - X-Authenticated-User-Id
-      idempotency:
-        enabled: true
-        header-name: Idempotency-Key
-        key-prefix: "moaje:gateway:idempotency:"
-        ttl: 10m
-        fail-closed: true
-        require-for-unsafe-methods: false
-        max-body-bytes: 1048576
-        methods:
-          - POST
-          - PUT
-          - PATCH
-          - DELETE
-        excluded-path-prefixes:
-          - /actuator
