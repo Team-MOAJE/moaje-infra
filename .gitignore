@@ -22,3 +22,6 @@ out/
 .env
 /certs/
 /.local/
+
+# Personal learning notes are kept locally, outside the published documentation.
+/docs/learning/
