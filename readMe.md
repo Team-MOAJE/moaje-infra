@@ -7,6 +7,7 @@ Gateway와 로컬 통합 실행 환경을 관리합니다. Banking·Asset·Mock�
 - [Compose 설정](docker-compose.yaml)
 - [JWT 환경변수 안내](.env.example)
 - [연동 검사 스크립트](tests/compose-smoke.ps1)
+- [통합 Swagger·테스트 데이터 가이드](docs/integrated-api-test-guide.md)
 
 ## 로컬 실행
 
@@ -21,9 +22,15 @@ docker compose --profile apps up -d --build
 
 Gateway는 `http://localhost:8080`, Mock은 `http://localhost:8081`입니다. Auth·Banking·Asset HTTP는 호스트에 직접 공개하지 않고 Compose 내부에서만 연결합니다. 도구는 `tools`, 모니터링은 `monitoring` 프로필을 선택해야 실행되며 자동 재시작은 꺼져 있습니다. gRPC 개발 인증서는 최초 실행 시 생성됩니다.
 
+월별 집계 테스트가 필요하면 테스트 도구를 함께 실행한 뒤 `http://localhost:8090`에서 페르소나 데이터를 생성합니다.
+
+```powershell
+docker compose --profile apps --profile test-tools up -d --build
+```
+
 Auth JWT의 `sub`는 숫자형 사용자 ID를 담은 문자열이며, `typ=access`, `jti`, `iat`, `exp`, `iss=moaje-auth`를 검증합니다. 현재 HS256을 사용할 때 Gateway의 `AUTH_JWT_SECRET_KEY`에는 Auth의 `SECRET_KEY`와 같은 값을 안전하게 주입해야 합니다. 비밀키·실제 토큰은 커밋하지 않으며, 설정이 없다고 인증을 우회하지 않습니다.
 
-Auth는 시작할 때 Alembic migration을 적용하고, Banking·Asset의 새 DB는 Flyway migration과 Hibernate validate로 시작합니다. 기존 데이터를 유지해야 하는 DB는 백업·별도 전환 검증이 필요합니다. `down -v`로 기존 데이터를 임의 삭제하지 않습니다. Swagger와 Work 통합은 아직 미완료입니다.
+Auth는 시작할 때 Alembic migration을 적용하고, Banking·Asset의 새 DB는 Flyway migration과 Hibernate validate로 시작합니다. 기존 데이터를 유지해야 하는 DB는 백업·별도 전환 검증이 필요합니다. 통합 Swagger는 구성되었고 Work 통합은 아직 미완료입니다. 로컬 테스트 데이터 전체 초기화는 가이드의 확인 절차를 따른다.
 
 ## Work 합류 준비
 
