@@ -1,4 +1,33 @@
 services:
+  auth-mysql:
+    image: mysql:8.4
+    container_name: ${MOAJE_STACK_PREFIX:-moaje}-auth-mysql
+    mem_limit: 768m
+    ports:
+      - "127.0.0.1:${AUTH_MYSQL_PORT:-3309}:3306"
+    environment:
+      MYSQL_DATABASE: moaje_auth
+      MYSQL_ROOT_PASSWORD: moaje-auth-root
+      MYSQL_USER: moaje_auth
+      MYSQL_PASSWORD: moaje_auth
+      TZ: Asia/Seoul
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=+09:00
+      - --innodb-buffer-pool-size=128M
+      - --performance-schema=OFF
+      - --max-connections=50
+    volumes:
+      - auth-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", 'MYSQL_PWD="$$MYSQL_PASSWORD" mysql -h127.0.0.1 -u"$$MYSQL_USER" "$$MYSQL_DATABASE" -e "SELECT 1" >/dev/null 2>&1']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    restart: "no"
+
   asset-mysql:
     image: mysql:8.4
     container_name: ${MOAJE_STACK_PREFIX:-moaje}-asset-mysql
@@ -134,6 +163,68 @@ services:
       - kafka
     restart: "no"
 
+  mock-redis:
+    profiles: ["apps"]
+    image: redis:7.4-alpine
+    container_name: ${MOAJE_STACK_PREFIX:-moaje}-mock-redis
+    mem_limit: 256m
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "128mb", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - mock-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: "no"
+
+  auth:
+    profiles: ["apps"]
+    container_name: ${MOAJE_STACK_PREFIX:-moaje}-auth
+    mem_limit: 512m
+    build:
+      context: ../moaje-auth
+      dockerfile: Dockerfile
+    command: ["/bin/sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+    environment:
+      DATABASE_URL: mysql+asyncmy://moaje_auth:moaje_auth@auth-mysql:3306/moaje_auth?charset=utf8mb4
+      APP_ENV: local
+      SECRET_KEY: ${AUTH_JWT_SECRET_KEY:-}
+      ALGORITHM: ${AUTH_JWT_ALGORITHM:-HS256}
+      JWT_ISSUER: ${AUTH_JWT_ISSUER:-moaje-auth}
+      JWT_AUDIENCE: ${AUTH_JWT_AUDIENCE:-}
+      AES_MASTER_KEY: ${AUTH_AES_MASTER_KEY:-}
+      GRPC_PORT: 50051
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+    depends_on:
+      auth-mysql:
+        condition: service_healthy
+    restart: "no"
+
+  mock-banking:
+    profiles: ["apps"]
+    container_name: ${MOAJE_STACK_PREFIX:-moaje}-mock-banking
+    mem_limit: 512m
+    build:
+      context: ../backing-mockup
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:${MOCK_BANKING_PORT:-8081}:8081"
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xms64m -Xmx384m"
+      REDIS_HOST: mock-redis
+      REDIS_PORT: 6379
+      MOAJE_BANKING_SECRET: ${MOAJE_BANKING_HMAC_SECRET:-Moaje-banking-secret}
+    depends_on:
+      mock-redis:
+        condition: service_healthy
+    restart: "no"
+
   asset:
     profiles: ["apps"]
     container_name: ${MOAJE_STACK_PREFIX:-moaje}-asset
@@ -201,9 +292,7 @@ services:
       BANKING_GRPC_TLS_CERTIFICATE_CHAIN_PATH: /run/grpc/banking.crt
       BANKING_GRPC_TLS_PRIVATE_KEY_PATH: /run/grpc/banking.key
       BANKING_GRPC_TLS_TRUST_CERTIFICATE_COLLECTION_PATH: /run/grpc/ca.crt
-      MOAJE_BANKING_EXTERNAL_API_BASE_URL: ${MOAJE_MOCK_BASE_URL:-http://host.docker.internal:8081/}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      MOAJE_BANKING_EXTERNAL_API_BASE_URL: ${MOAJE_MOCK_BASE_URL:-http://mock-banking:8081/}
     depends_on:
       banking-mysql:
         condition: service_healthy
@@ -213,6 +302,8 @@ services:
         condition: service_healthy
       grpc-cert-init:
         condition: service_completed_successfully
+      mock-banking:
+        condition: service_started
     restart: "no"
 
   gateway:
@@ -229,17 +320,22 @@ services:
       AUTH_JWT_ISSUER: ${AUTH_JWT_ISSUER:-}
       AUTH_JWT_AUDIENCE: ${AUTH_JWT_AUDIENCE:-}
       AUTH_JWT_JWK_SET_URI: ${AUTH_JWT_JWK_SET_URI:-}
-      AUTH_JWT_ALGORITHM: ${AUTH_JWT_ALGORITHM:-}
-      AUTH_PUBLIC_ENDPOINTS: ${AUTH_PUBLIC_ENDPOINTS:-}
-      AUTH_SERVICE_URI: http://host.docker.internal:8085
+      AUTH_JWT_ALGORITHM: ${AUTH_JWT_ALGORITHM:-HS256}
+      AUTH_JWT_SECRET_KEY: ${AUTH_JWT_SECRET_KEY:-}
+      AUTH_PUBLIC_ENDPOINTS: ${AUTH_PUBLIC_ENDPOINTS:-POST /api/v1/auth/register,POST /api/v1/auth/login,POST /api/v1/auth/refresh,POST /api/v1/auth/logout,POST /api/v1/auth/token/validate,GET /api/v1/auth/token/validate}
+      AUTH_SERVICE_URI: ${AUTH_SERVICE_URI:-http://auth:8000}
       ASSET_SERVICE_URI: http://asset:8082
       BANKING_SERVICE_URI: http://banking:8080
       WORK_SERVICE_URI: http://host.docker.internal:8084
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
-      - asset
-      - banking
+      auth:
+        condition: service_healthy
+      asset:
+        condition: service_started
+      banking:
+        condition: service_started
     restart: "no"
 
   grpc-cert-init:
@@ -288,9 +384,11 @@ services:
     restart: "no"
 
 volumes:
+  auth-mysql-data:
   asset-mysql-data:
   banking-mysql-data:
   redis-data:
+  mock-redis-data:
   redisinsight-data:
   kafka-data:
   prometheus-data:

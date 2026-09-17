@@ -6,16 +6,36 @@ spring:
       server:
         webmvc:
           routes:
+            - id: auth-docs
+              uri: ${AUTH_SERVICE_URI:http://localhost:8000}
+              predicates:
+                - Path=/docs/auth/**
+              filters:
+                - RewritePath=/docs/auth/?(?<segment>.*), /$\{segment}
+            - id: asset-docs
+              uri: ${ASSET_SERVICE_URI:http://localhost:8082}
+              predicates:
+                - Path=/docs/asset/**
+              filters:
+                - RewritePath=/docs/asset/?(?<segment>.*), /$\{segment}
+            - id: banking-docs
+              uri: ${BANKING_SERVICE_URI:http://localhost:8080}
+              predicates:
+                - Path=/docs/banking/**
+              filters:
+                - RewritePath=/docs/banking/?(?<segment>.*), /$\{segment}
             - id: auth-module
-              uri: ${AUTH_SERVICE_URI:http://localhost:8085}
+              uri: ${AUTH_SERVICE_URI:http://localhost:8000}
               predicates:
                 - Path=/api/v1/auth/**
+              filters:
+                - RewritePath=/api/v1/auth/?(?<segment>.*), /api/auth/$\{segment}
             - id: asset-module
               uri: ${ASSET_SERVICE_URI:http://localhost:8082}
               predicates:
                 - Path=/api/v1/assets/**
             - id: banking-module
-              uri: ${BANKING_SERVICE_URI:http://localhost:8083}
+              uri: ${BANKING_SERVICE_URI:http://localhost:8080}
               predicates:
                 - Path=/api/v1/banking/**
             - id: work-module
@@ -64,14 +84,15 @@ info:
 moaje:
   gateway:
     jwt:
-      # 회의 후 .env에 네 값을 입력한다. issuer는 Auth의 iss, audience는 앱 API용 aud와 정확히 같아야 한다.
-      # jwk-set-uri는 공개키 목록 URL이며 비밀키가 아니다. algorithm에는 합의한 RS256 등의 값을 넣는다.
-      # 빈 값은 임시 인증 허용이 아니라 요청 차단이다. 실제 JWT나 개인정보는 이 파일에 적지 않는다.
+      # Auth의 현재 HS256을 사용할 때는 동일한 SECRET_KEY를 환경변수로 전달한다.
+      # RS256으로 전환하면 secret-key 대신 Auth의 JWKS 주소를 사용한다.
+      # issuer와 서명 키가 없으면 임시 인증을 허용하지 않고 요청을 차단한다.
       issuer: ${AUTH_JWT_ISSUER:}
       audience: ${AUTH_JWT_AUDIENCE:}
       jwk-set-uri: ${AUTH_JWT_JWK_SET_URI:}
       algorithm: ${AUTH_JWT_ALGORITHM:}
-      public-endpoints: ${AUTH_PUBLIC_ENDPOINTS:}
+      secret-key: ${AUTH_JWT_SECRET_KEY:}
+      public-endpoints: ${AUTH_PUBLIC_ENDPOINTS:POST /api/v1/auth/register,POST /api/v1/auth/login,POST /api/v1/auth/refresh,POST /api/v1/auth/logout,POST /api/v1/auth/token/validate,GET /api/v1/auth/token/validate}
     guard:
       trace-header-name: X-Trace-Id
       internal-headers:

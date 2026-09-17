@@ -42,7 +42,7 @@ Asset 자동 대사는 `accountId`로 Banking을 호출한다. Banking은 `banki
 
 2026-09-12 승인 반영: Auth가 발급한 JWT를 Gateway에서 검증하고, 검증된 `sub`를 `X-Authenticated-User-Id`로 전달한다. Banking·Asset의 공통 필터가 Principal로 변환한다. Body·Query의 사용자 ID로 fallback하지 않는다. Compose는 서비스 HTTP 직접 노출을 제거한다. 내부 네트워크 전체를 신뢰하지 않는 배포에서는 추가 인증이 필요하다.
 
-issuer·audience·JWKS·서명 알고리즘·공개 Auth 경로는 회의에서 확정해야 한다. 값이 없으면 검증을 우회하지 않는다. 입력 안내는 [환경변수 예시](../../.env.example)와 `GatewayJwtConfiguration` 주석에 남긴다. 양쪽 서비스 gRPC mTLS는 유지하며 Auth·Work RPC 규격을 새로 가정하지 않는다.
+2026-09-14 Auth 구현을 기준으로 `iss=moaje-auth`, 숫자형 사용자 ID 문자열 `sub`, `typ=access`, `jti`, `iat`, `exp`를 검증한다. 현재 HS256은 Auth와 Gateway가 같은 비밀키를 환경변수로 주입하고, 향후 RS/ES 전환 시에는 JWKS를 사용한다. `aud`는 Auth의 `JWT_AUDIENCE`가 설정된 경우 Gateway에도 같은 값을 설정한다. 값이 없으면 검증을 우회하지 않는다.
 
 계좌 개설 API의 Auth 개인정보 조회 및 서비스 간 인증 계약은 여전히 별도 합의가 필요하다. 송금 경로는 Request Body의 사용자 값을 인증 근거로 사용하지 않지만, 전체 Auth·Work gRPC 인증 규격까지 확정한 것은 아니다.
 
