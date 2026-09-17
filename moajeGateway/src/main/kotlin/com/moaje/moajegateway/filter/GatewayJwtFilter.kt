@@ -17,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 class GatewayJwtFilter(private val decoder: JwtDecoder, private val properties: GatewayJwtProperties) : OncePerRequestFilter() {
     override fun shouldNotFilter(request: HttpServletRequest): Boolean =
         request.requestURI == "/actuator" || request.requestURI.startsWith("/actuator/") ||
+            request.requestURI.startsWith("/docs/") ||
             "${request.method} ${request.requestURI}" in properties.publicEndpoints
 
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
