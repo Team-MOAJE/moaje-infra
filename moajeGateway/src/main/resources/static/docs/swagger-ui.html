@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MOAJE Integrated API</title>
+    <link rel="stylesheet" href="/docs/asset/swagger-ui/swagger-ui.css">
+    <style>
+        body { margin: 0; background: #fafafa; }
+        .swagger-ui .topbar { background: #172033; }
+        .swagger-ui .topbar .download-url-wrapper .select-label { color: #fff; }
+    </style>
+</head>
+<body>
+<div id="swagger-ui"></div>
+<script src="/docs/asset/swagger-ui/swagger-ui-bundle.js"></script>
+<script src="/docs/asset/swagger-ui/swagger-ui-standalone-preset.js"></script>
+<script>
+    window.onload = function () {
+        window.ui = SwaggerUIBundle({
+            dom_id: '#swagger-ui',
+            urls: [
+                {name: 'Auth API', url: '/docs/auth/openapi.json'},
+                {name: 'Banking API', url: '/docs/banking/v3/api-docs'},
+                {name: 'Asset API', url: '/docs/asset/v3/api-docs'}
+            ],
+            'urls.primaryName': 'Banking API',
+            deepLinking: true,
+            persistAuthorization: true,
+            displayRequestDuration: true,
+            requestInterceptor: function (request) {
+                const url = new URL(request.url, window.location.origin);
+                if (url.origin === window.location.origin && url.pathname.startsWith('/api/auth/')) {
+                    url.pathname = '/api/v1' + url.pathname;
+                    request.url = url.toString();
+                }
+                return request;
+            },
+            presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+            layout: 'StandaloneLayout'
+        });
+    };
+</script>
+</body>
+</html>
