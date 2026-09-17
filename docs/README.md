@@ -5,13 +5,15 @@
 | 문서 | 읽는 목적 |
 |---|---|
 | [로컬 실행·연동 준비](../readMe.md) | Compose 시작, 인증 설정, 팀원 합류 조건 |
+| [통합 API 테스트 가이드](integrated-api-test-guide.md) | 통합 Swagger로 Auth·Banking·Asset 흐름을 직접 검증하는 절차 |
+| [Kafka Topic 정리](kafka-topics.md) | 서비스별 발행·소비 토픽과 미확정 계약 |
 | [공통 계약](https://github.com/Team-MOAJE/moaje-grpc-contracts/tree/main/proto) | gRPC·Kafka 메시지의 Protobuf 원본 |
 | [Phase별 기록·회고](phase-history-and-retrospective.md) | 네 모듈의 변화, 검증 결과, 남은 일, 문서 통합 내역 |
 | [ADR](adr) | 왜 이 설계를 선택했는지와 대안·비용 |
 
 ## 현재 실행 상태
 
-2026-09-12: **격리 Compose의 Kafka 장애 포함 29개 검사와 재생성한 일반 환경의 23개 연동 검사가 통과했습니다.** 기존 MySQL 실패 원인을 확인하고, 별도 검증 성공 후 사용자 승인 범위의 개발 볼륨 5개를 백업·초기화했습니다. 당시 네 앱의 기동을 확인했으며 선택 도구와 자동 재시작은 꺼 두었습니다. Auth·Work 실제 연동과 Swagger는 아직 미완료입니다. [검증·회고](phase-history-and-retrospective.md#verification), [Auth·Work 연결 준비](../readMe.md#authwork-합류-준비)를 확인하세요.
+2026-09-18: **Auth·Gateway·Banking·Mock Banking·Asset 통합 기동과 Gateway JWT 라우팅, Asset 집계 Outbox의 Kafka 적재를 확인했습니다.** 통합 Swagger에서 Auth·Banking·Asset 문서를 전환할 수 있으며, Fixture Console로 과거 여러 달의 집계용 거래를 만들 수 있습니다. Work의 실제 소비 연동은 후속 작업입니다. [통합 API 테스트 가이드](integrated-api-test-guide.md)와 [검증·회고](phase-history-and-retrospective.md#verification)를 확인하세요.
 
 ## ADR 목록
 

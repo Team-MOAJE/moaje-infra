@@ -217,12 +217,41 @@ services:
       - "127.0.0.1:${MOCK_BANKING_PORT:-8081}:8081"
     environment:
       JAVA_TOOL_OPTIONS: "-Xms64m -Xmx384m"
+      SPRING_PROFILES_ACTIVE: local
       REDIS_HOST: mock-redis
       REDIS_PORT: 6379
       MOAJE_BANKING_SECRET: ${MOAJE_BANKING_HMAC_SECRET:-Moaje-banking-secret}
+      MOAJE_FIXTURE_ENABLED: "true"
+      MOAJE_FIXTURE_ADMIN_TOKEN: ${MOAJE_FIXTURE_ADMIN_TOKEN:-moaje-local-fixture-token}
     depends_on:
       mock-redis:
         condition: service_healthy
+    restart: "no"
+
+  test-fixture-console:
+    profiles: ["test-tools"]
+    container_name: ${MOAJE_STACK_PREFIX:-moaje}-test-fixture-console
+    mem_limit: 128m
+    build:
+      context: ./test-fixture-console
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:${TEST_FIXTURE_CONSOLE_PORT:-8090}:8090"
+    environment:
+      GATEWAY_URL: http://gateway:8080
+      MOCK_BANKING_URL: http://mock-banking:8081
+      FIXTURE_ADMIN_TOKEN: ${MOAJE_FIXTURE_ADMIN_TOKEN:-moaje-local-fixture-token}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      gateway:
+        condition: service_started
+      mock-banking:
+        condition: service_started
     restart: "no"
 
   asset:
