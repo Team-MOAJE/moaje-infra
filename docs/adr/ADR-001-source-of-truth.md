@@ -30,6 +30,6 @@ Mock Banking 자체가 Redis 기반 실습용 계정계이므로 실제 은행�
 ## Related Tests and Documents
 
 - `TransferCommandServiceIdempotencyTest`
-- `TransferApplicationServiceCharacterizationTest`
-- `TransferApplicationServiceIdempotencyJpaTest`
+- `TransferServiceImplCharacterizationTest`
+- `TransferServiceImplIdempotencyJpaTest`
 - `moaje-infra/docs/phase-history-and-retrospective.md`

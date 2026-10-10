@@ -6,6 +6,12 @@ spring:
       server:
         webmvc:
           routes:
+            - id: work-docs
+              uri: ${WORK_SERVICE_URI:http://localhost:8084}
+              predicates:
+                - Path=/docs/work/openapi.json
+              filters:
+                - SetPath=/openapi.json
             - id: auth-docs
               uri: ${AUTH_SERVICE_URI:http://localhost:8000}
               predicates:

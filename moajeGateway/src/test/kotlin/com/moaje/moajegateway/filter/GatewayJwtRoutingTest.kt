@@ -89,10 +89,11 @@ class GatewayJwtRoutingTest {
     }
 
     @Test
-    @DisplayName("Auth와 Asset, Banking 문서 경로는 JWT 없이 각 서비스 OpenAPI 경로로 전달된다")
+    @DisplayName("Auth·Asset·Banking·Work 문서는 JWT 없이 각 서비스 OpenAPI 경로로 전달된다")
     fun routesSwaggerDocumentsWithoutJwt() {
         mapOf(
             "auth/openapi.json" to "/openapi.json",
+            "work/openapi.json" to "/openapi.json",
             "asset/v3/api-docs" to "/v3/api-docs",
             "banking/v3/api-docs" to "/v3/api-docs",
         ).forEach { (documentPath, downstreamPath) ->
@@ -107,7 +108,7 @@ class GatewayJwtRoutingTest {
     }
 
     @Test
-    @DisplayName("통합 Swagger 화면은 세 서비스의 문서를 선택할 수 있다")
+    @DisplayName("통합 Swagger 화면은 네 서비스의 문서를 선택할 수 있다")
     fun servesIntegratedSwaggerUiWithoutJwt() {
         val request = HttpRequest.newBuilder(
             URI("http://localhost:$port/docs/swagger-ui.html"),
@@ -119,13 +120,26 @@ class GatewayJwtRoutingTest {
         assertThat(response.body()).contains("/docs/auth/openapi.json")
         assertThat(response.body()).contains("/docs/banking/v3/api-docs")
         assertThat(response.body()).contains("/docs/asset/v3/api-docs")
+        assertThat(response.body()).contains("/docs/work/openapi.json")
         assertThat(response.body()).contains("persistAuthorization: true")
         assertThat(response.body()).contains("url.pathname.startsWith('/api/auth/')")
         assertThat(response.body()).contains("'/api/v1' + url.pathname")
     }
 
-    private fun call(token: String?): HttpResponse<String> {
-        val builder = HttpRequest.newBuilder(URI("http://localhost:$port/api/v1/assets/accounts"))
+    @Test
+    @DisplayName("Work API도 JWT가 없으면 차단하고 검증된 사용자 헤더로 라우팅한다")
+    fun routesWorkApiWithVerifiedJwtOnly() {
+        // given: Work 경로에서도 클라이언트가 보낸 사용자 헤더를 신뢰하면 안 된다.
+        val path = "/api/v1/work/universities"
+        // when / then: 문서 공개와 실제 API 인증은 별개다.
+        assertThat(call(null, path).statusCode()).isEqualTo(401)
+        val response = call(token(), path)
+        assertThat(response.statusCode()).isEqualTo(200)
+        assertThat(response.body()).isEqualTo("123456789")
+    }
+
+    private fun call(token: String?, path: String = "/api/v1/assets/accounts"): HttpResponse<String> {
+        val builder = HttpRequest.newBuilder(URI("http://localhost:$port$path"))
             .header("X-Authenticated-User-Id", "spoofed-user").GET()
         token?.let { builder.header("Authorization", "Bearer $it") }
         return HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofString())
@@ -161,6 +175,11 @@ class GatewayJwtRoutingTest {
                 exchange.sendResponseHeaders(200, body.size.toLong())
                 exchange.responseBody.use { it.write(body) }
             }
+            createContext("/api/v1/work/") { exchange ->
+                val body = exchange.requestHeaders.getFirst("X-Authenticated-User-Id").orEmpty().toByteArray()
+                exchange.sendResponseHeaders(200, body.size.toLong())
+                exchange.responseBody.use { it.write(body) }
+            }
             createContext("/api/auth/login") { exchange ->
                 authUpgradeHeader.set(exchange.requestHeaders.getFirst("Upgrade"))
                 val body = exchange.requestURI.path.toByteArray()
@@ -188,6 +207,7 @@ class GatewayJwtRoutingTest {
             registry.add("ASSET_SERVICE_URI") { "http://127.0.0.1:${server.address.port}" }
             registry.add("BANKING_SERVICE_URI") { "http://127.0.0.1:${server.address.port}" }
             registry.add("AUTH_SERVICE_URI") { "http://127.0.0.1:${server.address.port}" }
+            registry.add("WORK_SERVICE_URI") { "http://127.0.0.1:${server.address.port}" }
             registry.add("moaje.gateway.jwt.public-endpoints[0]") { "POST /api/v1/auth/login" }
         }
         @JvmStatic @AfterAll fun stopServer() { server.stop(0) }

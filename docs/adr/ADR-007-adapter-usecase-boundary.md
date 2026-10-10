@@ -39,6 +39,6 @@ Auth·Work를 포함한 공통 서비스 인증/인가 규격은 아직 확정�
 
 - `TransferCommandServiceIdempotencyTest`
 - `BankingGrpcServerMutualTlsTest`
-- `BankingTransferProjectionClientMutualTlsTest`
+- `BankingGrpcClientMutualTlsTest`
 - `TransferServiceProviderAccountTest`
 - `moaje-grpc-contracts/proto/grpc/banking_service.proto`
