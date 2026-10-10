@@ -46,6 +46,6 @@ Banking 이벤트는 현재 출금 계좌 효과만 포함한다. 입금 Project
 
 ## Related Tests and Documents
 
-- `TransferApplicationServiceCharacterizationTest`
-- `TransferApplicationServiceIdempotencyJpaTest`
+- `TransferServiceImplCharacterizationTest`
+- `TransferServiceImplIdempotencyJpaTest`
 - ADR-010

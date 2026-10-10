@@ -269,7 +269,7 @@ sh scripts/seed-monthly-cashflow-persona.sh
 ## 12. 현재 한계
 
 - Auth에서 계좌 개설용 CI·전화번호를 제공하는 RPC는 아직 확정되지 않았다.
-- Work는 현재 Compose와 통합되지 않아 Asset 집계 이벤트를 소비하지 않는다.
+- Work는 `apps` 프로필로 함께 실행되며 통합 Swagger에서 명세를 볼 수 있다. 2026-10-10에 잔액 RPC·Gateway 시뮬레이터·거래 및 집계 Protobuf 소비를 검증했다. Git Bash에서 `bash tests/work-asset-integration.sh`로 재현한다. 전용 DB 행·캐시는 정리하지만 Kafka 테스트 메시지는 보존 기간까지 남는다. 전체 금융 흐름·회원가입 검증과는 구분하며 [검사 결과와 재현 명령](work-integration-check.md)을 참고한다.
 - 통합 Swagger는 여러 API를 한 화면에서 호출하게 해주지만 전체 시나리오를 한 번에 자동 실행하지는 않는다.
 - Fixture Console은 로컬 수동 검증 도구이며 운영자용 백오피스가 아니다.
 - 반복 가능한 회귀 검증은 Swagger 수동 테스트와 별도의 자동 통합 테스트가 함께 필요하다.

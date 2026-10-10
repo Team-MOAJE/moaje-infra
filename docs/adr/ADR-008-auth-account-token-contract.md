@@ -54,4 +54,4 @@ Asset 자동 대사는 `accountId`로 Banking을 호출한다. Banking은 `banki
 - `TransferCommandServiceIdempotencyTest`
 - `TransferServiceProviderAccountTest`
 - `BankingTransferEventPublisher`
-- `TransferApplicationServiceIdempotencyJpaTest`
+- `TransferServiceImplIdempotencyJpaTest`

@@ -13,7 +13,11 @@
 
 ## 현재 실행 상태
 
-2026-09-18: **Auth·Gateway·Banking·Mock Banking·Asset 통합 기동과 Gateway JWT 라우팅, Asset 집계 Outbox의 Kafka 적재를 확인했습니다.** 통합 Swagger에서 Auth·Banking·Asset 문서를 전환할 수 있으며, Fixture Console로 과거 여러 달의 집계용 거래를 만들 수 있습니다. Work의 실제 소비 연동은 후속 작업입니다. [통합 API 테스트 가이드](integrated-api-test-guide.md)와 [검증·회고](phase-history-and-retrospective.md#verification)를 확인하세요.
+2026-09-18: **Auth·Gateway·Banking·Mock Banking·Asset 통합 기동과 Gateway JWT 라우팅, Asset 집계 Outbox의 Kafka 적재를 확인했습니다.** Fixture Console로 과거 여러 달의 집계용 거래를 만들 수 있습니다. [통합 API 테스트 가이드](integrated-api-test-guide.md)와 [검증·회고](phase-history-and-retrospective.md#verification)를 확인하세요.
+
+2026-09-27: **Work(`f75ed82`)와 전용 MySQL을 apps 프로필에 추가했습니다.** Work·DB·Redis·ML 모델 상태, Kafka Consumer Group 가입, Gateway 문서 라우팅과 JWT를 포함한 학교 목록 조회를 확인했습니다. Gateway 테스트 16건도 통과했습니다. 통합 Swagger에서 Work API 명세를 선택할 수 있습니다. Work→Asset mTLS, 사용자별 소유권 검증, 실제 업무 이벤트의 전체 처리는 완료된 것으로 간주하지 않습니다. [실행 방법과 남은 계약](../readMe.md#work-통합-실행)을 참고하세요.
+
+2026-10-10 후속 검증: 별도 Compose 환경에서 159개 검증 중 157개 통과, Auth·Work 관련 2개 실패를 기록했습니다. 테스트 자원은 제거하고 기존 개발 볼륨을 보존했습니다. [최신 통합 테스트 결과](full-integration-test-plan.md)를 참고하세요.
 
 ## ADR 목록
 
