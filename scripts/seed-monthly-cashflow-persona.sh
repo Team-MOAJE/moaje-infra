@@ -27,6 +27,10 @@ require_command jq
 require_command openssl
 require_command docker
 
+# 문자 발송에 쓰지 않는 테스트용 번호다. 재현할 때는 PERSONA_PHONE으로 지정한다.
+# 같은 번호로 재실행하면 중복 가입 오류가 나므로 새 번호를 사용한다.
+PERSONA_PHONE=${PERSONA_PHONE:-$(printf '010%08d' "$((0x$(openssl rand -hex 4) % 100000000))")}
+
 cd "$INFRA_DIR"
 
 echo "[1/7] 통합 환경 확인"
@@ -39,14 +43,16 @@ for service in gateway auth banking asset mock-banking mock-redis kafka; do
 done
 
 echo "[2/7] 테스트 사용자 등록 및 로그인"
-REGISTER_BODY=$(jq -anc --arg email "$PERSONA_EMAIL" --arg pin "$PERSONA_PIN" '{email:$email,pin:$pin}')
+REGISTER_BODY=$(jq -anc --arg email "$PERSONA_EMAIL" --arg pin "$PERSONA_PIN" --arg phone "$PERSONA_PHONE" \
+    '{phone_number:$phone,name:"월간 집계 테스트",email:$email,pin:$pin,pin_confirm:$pin,
+      terms_agreed:true,privacy_agreed:true,terms_version:"local-test-v1",privacy_version:"local-test-v1"}')
 REGISTER_RESPONSE=$(curl --fail-with-body -sS -X POST "$GATEWAY_URL/api/v1/auth/register" \
     -H 'Content-Type: application/json' \
     --data "$REGISTER_BODY")
 USER_ID=$(printf '%s' "$REGISTER_RESPONSE" | jq -er '.data.user_id | tostring')
 
-LOGIN_BODY=$(jq -anc --arg email "$PERSONA_EMAIL" --arg pin "$PERSONA_PIN" \
-    '{email:$email,pin:$pin,device_info:"cashflow-persona-seed"}')
+LOGIN_BODY=$(jq -anc --arg phone "$PERSONA_PHONE" --arg pin "$PERSONA_PIN" \
+    '{phone_number:$phone,pin:$pin,device_info:"cashflow-persona-seed"}')
 LOGIN_RESPONSE=$(curl --fail-with-body -sS -X POST "$GATEWAY_URL/api/v1/auth/login" \
     -H 'Content-Type: application/json' \
     --data "$LOGIN_BODY")
@@ -55,8 +61,9 @@ JWT=$(printf '%s' "$LOGIN_RESPONSE" | jq -er '.data.access_token')
 echo "[3/7] Banking 계좌 개설"
 ACCOUNT_BODY=$(jq -anc \
     --arg ci "$PERSONA_CI" \
+    --arg phone "$PERSONA_PHONE" \
     --arg productName "$PERSONA_PRODUCT" \
-    '{ci:$ci,userName:"월간 집계 테스트",phoneNumber:"01000000003",bankCode:"001",productName:$productName,initialBalance:500000}')
+    '{ci:$ci,userName:"월간 집계 테스트",phoneNumber:$phone,bankCode:"001",productName:$productName,initialBalance:500000}')
 ACCOUNT_RESPONSE=$(curl --fail-with-body -sS -X POST "$GATEWAY_URL/api/v1/banking/accounts" \
     -H "Authorization: Bearer $JWT" \
     -H 'Content-Type: application/json' \
@@ -83,7 +90,8 @@ fi
 echo "[4/7] Mock Banking 접근 토큰 발급"
 MOCK_TOKEN_BODY=$(jq -anc \
     --arg ci "$PERSONA_CI" \
-    '{ci:$ci,userName:"월간 집계 테스트",phoneNumber:"01000000003"}')
+    --arg phone "$PERSONA_PHONE" \
+    '{ci:$ci,userName:"월간 집계 테스트",phoneNumber:$phone}')
 MOCK_TOKEN_RESPONSE=$(curl --fail-with-body -sS -X POST "$MOCK_BANKING_URL/oauth/2.0/token" \
     -H 'Content-Type: application/json' \
     --data "$MOCK_TOKEN_BODY")
@@ -154,6 +162,7 @@ echo
 echo "테스트 페르소나 생성 완료"
 echo "userId: $USER_ID"
 echo "email: $PERSONA_EMAIL"
+echo "phoneNumber: $PERSONA_PHONE"
 echo "PIN: $PERSONA_PIN"
 echo "accountId: $ACCOUNT_ID"
 echo "targetMonth: $TARGET_MONTH"
@@ -164,4 +173,4 @@ echo
 echo "카테고리 집계"
 printf '%s\n' "$CATEGORY_RESULT" | jq
 echo
-echo "JWT는 출력하지 않았습니다. Swagger에서 확인하려면 위 이메일과 PIN으로 다시 로그인하세요."
+echo "JWT는 출력하지 않았습니다. Swagger에서 확인하려면 위 휴대폰 번호와 PIN으로 다시 로그인하세요."

@@ -5,6 +5,9 @@
 | 문서 | 읽는 목적 |
 |---|---|
 | [로컬 실행·연동 준비](../readMe.md) | Compose 시작, 인증 설정, 팀원 합류 조건 |
+| [다른 PC에서 실행](run-on-another-pc.md) | 저장소 받기, 비밀키 설정, Docker 빌드·실행·초기화 |
+| [2026-10-11 통합 테스트 결과](integration-test-results-20261011.md) | 최신 Auth·Work 연동, 실제 장애 주입 결과와 미해결 사항 |
+| [Gateway·페르소나 후속 검증](gateway-persona-retest-20261011.md) | JWT 없는 잠금 해제, 최신 규격의 화면·스크립트 데이터 생성 |
 | [통합 API 테스트 가이드](integrated-api-test-guide.md) | 통합 Swagger로 Auth·Banking·Asset 흐름을 직접 검증하는 절차 |
 | [Kafka Topic 정리](kafka-topics.md) | 서비스별 발행·소비 토픽과 미확정 계약 |
 | [공통 계약](https://github.com/Team-MOAJE/moaje-grpc-contracts/tree/main/proto) | gRPC·Kafka 메시지의 Protobuf 원본 |
@@ -12,6 +15,8 @@
 | [ADR](adr) | 왜 이 설계를 선택했는지와 대안·비용 |
 
 ## 현재 실행 상태
+
+2026-10-11: 최신 휴대폰 가입 규격으로 격리 통합 테스트를 재실행했습니다. 송금·메시지 중복·월 집계·Timeout 및 강제 종료 복구를 확인했습니다. Gateway 잠금 해제 경로와 구형 페르소나 도구의 한계는 [이번 결과](integration-test-results-20261011.md)에 구분했습니다. 재시험을 포함한 검증 기록은 187개이며 모든 기능이 통과했다는 뜻은 아닙니다.
 
 2026-09-18: **Auth·Gateway·Banking·Mock Banking·Asset 통합 기동과 Gateway JWT 라우팅, Asset 집계 Outbox의 Kafka 적재를 확인했습니다.** Fixture Console로 과거 여러 달의 집계용 거래를 만들 수 있습니다. [통합 API 테스트 가이드](integrated-api-test-guide.md)와 [검증·회고](phase-history-and-retrospective.md#verification)를 확인하세요.
 

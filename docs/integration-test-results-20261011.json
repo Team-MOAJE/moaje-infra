@@ -1,0 +1,937 @@
+[
+  {
+    "name": "가입 0",
+    "status": "PASS",
+    "detail": "HTTP actual=201, expected=201"
+  },
+  {
+    "name": "로그인 0",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "가입 1",
+    "status": "PASS",
+    "detail": "HTTP actual=201, expected=201"
+  },
+  {
+    "name": "로그인 1",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "가입 2",
+    "status": "PASS",
+    "detail": "HTTP actual=201, expected=201"
+  },
+  {
+    "name": "로그인 2",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "중복 가입",
+    "status": "PASS",
+    "detail": "HTTP actual=409, expected=409"
+  },
+  {
+    "name": "잘못된 PIN 길이",
+    "status": "PASS",
+    "detail": "HTTP actual=400, expected=400"
+  },
+  {
+    "name": "필수 약관 거부",
+    "status": "PASS",
+    "detail": "HTTP actual=400, expected=400"
+  },
+  {
+    "name": "PIN 확인 불일치",
+    "status": "PASS",
+    "detail": "HTTP actual=400, expected=400"
+  },
+  {
+    "name": "잘못된 PIN 로그인",
+    "status": "PASS",
+    "detail": "HTTP actual=422, expected=422"
+  },
+  {
+    "name": "무인증 Asset 차단",
+    "status": "PASS",
+    "detail": "HTTP actual=401, expected=401"
+  },
+  {
+    "name": "위조 사용자 헤더 차단",
+    "status": "PASS",
+    "detail": "HTTP actual=401, expected=401"
+  },
+  {
+    "name": "Banking 계좌 개설 117421945108177865",
+    "status": "PASS",
+    "detail": "HTTP actual=201, expected=201"
+  },
+  {
+    "name": "계좌 생성 이벤트 Asset 반영 117421945108177865",
+    "status": "PASS",
+    "detail": "계좌 상세 조회 가능"
+  },
+  {
+    "name": "Banking 계좌 개설 117421945136117220",
+    "status": "PASS",
+    "detail": "HTTP actual=201, expected=201"
+  },
+  {
+    "name": "계좌 생성 이벤트 Asset 반영 117421945136117220",
+    "status": "PASS",
+    "detail": "계좌 상세 조회 가능"
+  },
+  {
+    "name": "정상 송금",
+    "status": "PASS",
+    "detail": "HTTP=200, status=COMPLETED"
+  },
+  {
+    "name": "같은 요청 같은 transferId",
+    "status": "PASS",
+    "detail": "transferId 동일"
+  },
+  {
+    "name": "같은 키 다른 금액",
+    "status": "PASS",
+    "detail": "HTTP=409"
+  },
+  {
+    "name": "송금 키 누락",
+    "status": "PASS",
+    "detail": "HTTP actual=400, expected=400"
+  },
+  {
+    "name": "Mock 송금인 잔액 90000",
+    "status": "PASS",
+    "detail": "balance=90000"
+  },
+  {
+    "name": "Mock 수취인 잔액 10000",
+    "status": "PASS",
+    "detail": "balance=10000"
+  },
+  {
+    "name": "송금인 Asset 90000",
+    "status": "PASS",
+    "detail": "이벤트 또는 정기 스냅샷 경로로 반영; DB 연결도 별도 확인"
+  },
+  {
+    "name": "refresh 잔액 117421945108177865",
+    "status": "PASS",
+    "detail": "HTTP=200, balance=90000"
+  },
+  {
+    "name": "refresh 잔액 117421945136117220",
+    "status": "PASS",
+    "detail": "HTTP=200, balance=10000"
+  },
+  {
+    "name": "Banking 최종 상태·외부 ID",
+    "status": "PASS",
+    "detail": "[{'status': 'SUCCEEDED', 'external_transaction_id': '44c559b8-5cc2-4cd1-a150-34bfab84e4da'}]"
+  },
+  {
+    "name": "실제 Banking Outbox 발행",
+    "status": "PASS",
+    "detail": "[{'status': 'PUBLISHED', 'event_id': '785edde6-d13d-4e28-90c8-d1db49af4093', 'attempt_count': 1}]"
+  },
+  {
+    "name": "Asset 내부 거래 연결 1건",
+    "status": "PASS",
+    "detail": "[{'n': 1}]"
+  },
+  {
+    "name": "실제 Asset 성공 이벤트 Work 소비",
+    "status": "PASS",
+    "detail": "[{'n': 1}]"
+  },
+  {
+    "name": "타인 계좌 상세 차단",
+    "status": "PASS",
+    "detail": "HTTP actual=403, expected=403"
+  },
+  {
+    "name": "타인 출금계좌 차단",
+    "status": "PASS",
+    "detail": "HTTP=403"
+  },
+  {
+    "name": "잔액 부족 명확 실패",
+    "status": "PASS",
+    "detail": "HTTP=200, status=FAILED"
+  },
+  {
+    "name": "동일 키 8개 동시 요청",
+    "status": "PASS",
+    "detail": "반환 ID 종류=1, DB행=1"
+  },
+  {
+    "name": "50건 커서 페이지 중복·누락 없음",
+    "status": "PASS",
+    "detail": "페이지 크기=[50, 50, 23], 조회=123, DB=123"
+  },
+  {
+    "name": "거래 단건 조회",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "다른 계좌 거래 ID 차단",
+    "status": "PASS",
+    "detail": "HTTP=404; 500이면 오류 응답 문제"
+  },
+  {
+    "name": "refresh 반복 시 중복 없음",
+    "status": "PASS",
+    "detail": "[{'n': 124}]"
+  },
+  {
+    "name": "일별 한도 계산",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "일별 한도 캐시 재조회",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "0일 계산 거절",
+    "status": "PASS",
+    "detail": "HTTP=400"
+  },
+  {
+    "name": "계좌 미연동 일별 계산",
+    "status": "PASS",
+    "detail": "HTTP actual=409, expected=409"
+  },
+  {
+    "name": "월별 집계 조회·Outbox 생성",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "카테고리 집계",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "가맹점 CAFE 분류 121원",
+    "status": "PASS",
+    "detail": "Mock merchantName → snapshot → Asset 분류"
+  },
+  {
+    "name": "개인 간 송금 TRANSFER 분리",
+    "status": "PASS",
+    "detail": "{'userId': '117421945108177865', 'yearMonth': '2026-10', 'incomeAmount': 0, 'expenseAmount': 121.0, 'transferAmount': 10001.0, 'revision': 1, 'calculatedAt': '2026-10-11T11:04:58.07354339'}"
+  },
+  {
+    "name": "거래 없는 사용자 0원 월 집계",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "실제 월 집계 이벤트 Work 소비",
+    "status": "PASS",
+    "detail": "[{'id': 897077317940363713, 'user_id': 117421945108177865, 'year_month': '2026-10', 'revision': 1, 'total_income': Decimal('0.0000'), 'total_expense': Decimal('121.0000'), 'total_transfer': Decimal('10001.0000'), 'created_at': datetime.datetime(2026, 10, 11, 11, 4, 59), 'updated_at': datetime.datetime(2026, 10, 11, 11, 4, 59)}]"
+  },
+  {
+    "name": "완료 거래 재요청 Mock 호출 추가 없음",
+    "status": "PASS",
+    "detail": "Mock POST 횟수 before=3, after=3"
+  },
+  {
+    "name": "같은 키 동시 12건 DB 1행·Mock 1회",
+    "status": "PASS",
+    "detail": "DB행=1, Mock POST 증가=1, HTTP상태=[200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200]"
+  },
+  {
+    "name": "같은 키 다른 수취계좌 거절",
+    "status": "PASS",
+    "detail": "HTTP=409"
+  },
+  {
+    "name": "JWT sub가 모든 거래 principal_id로 저장",
+    "status": "PASS",
+    "detail": "금융거래 행=4; body 사용자 ID는 인증 근거로 사용하지 않음"
+  },
+  {
+    "name": "Work 타인 조회 차단",
+    "status": "PASS",
+    "detail": "HTTP actual=403, expected=403"
+  },
+  {
+    "name": "Work /calendar/universities",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Work /onboarding/questions",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Work /simulator/baselines",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Work /spending/117421945108177865/profile",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Work /spending/117421945108177865/event-buffer",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "온보딩 10문항 저장",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "온보딩 단일 답변 수정",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Work /onboarding/117421945108177865/answers",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Work /onboarding/117421945108177865/progress",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Work /onboarding/117421945108177865/profile",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "시뮬레이터 실제 Asset 잔액",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "시뮬레이터 잔액 동일",
+    "status": "PASS",
+    "detail": "Work→Asset RPC 결과와 Asset 상세 비교"
+  },
+  {
+    "name": "조건 변경 시뮬레이터",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "사회인 준비도",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "수동 학사 일정 등록",
+    "status": "PASS",
+    "detail": "HTTP actual=201, expected=201"
+  },
+  {
+    "name": "Work /spending/117421945108177865/schedules",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Work /calendar/117421945108177865/schedules",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Work /spending/117421945108177865/event-buffer",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Work /spending/117421945108177865/report?year=2026&semester=2",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Work /recap/117421945108177865/months",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Work /recap/117421945108177865/2026-10",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "학사 일정 동기화",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "FDS 탐지",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "FDS 동일 거래 재요청",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Work /fds/117421945108177865/blacklist",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Work /fds/117421945108177865/logs",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Work /fds/117421945108177865/alerts",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Work /fds/117421945108177865/safety-score",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "운영 지표 사용자 차단",
+    "status": "PASS",
+    "detail": "HTTP actual=403, expected=403"
+  },
+  {
+    "name": "운영 블랙리스트 등록",
+    "status": "PASS",
+    "detail": "HTTP actual=201, expected=201"
+  },
+  {
+    "name": "운영 블랙리스트 해제",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "운영 재방문 지표",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "실제 mTLS 잔액 RPC 117421945108177865",
+    "status": "PASS",
+    "detail": "RPC잔액=89877, HTTP잔액=89877.0"
+  },
+  {
+    "name": "실제 mTLS 잔액 RPC 117421945136117220",
+    "status": "PASS",
+    "detail": "RPC잔액=10002, HTTP잔액=10002.0"
+  },
+  {
+    "name": "잔액 RPC 예외 빈ID",
+    "status": "PASS",
+    "detail": "INVALID_ARGUMENT"
+  },
+  {
+    "name": "잔액 RPC 예외 117421945160230928",
+    "status": "PASS",
+    "detail": "FAILED_PRECONDITION"
+  },
+  {
+    "name": "일별 계산 RPC 잔액 일치",
+    "status": "PASS",
+    "detail": "current_balance=89877, daily_limit=8987"
+  },
+  {
+    "name": "Auth 타인 계좌 토큰 생성 차단",
+    "status": "PASS",
+    "detail": "HTTP actual=403, expected=403"
+  },
+  {
+    "name": "Mock 성공 후 응답 Timeout",
+    "status": "PASS",
+    "detail": "[{'status': 'UNKNOWN', 'reconciliation_required': 1}]"
+  },
+  {
+    "name": "Timeout 대사 SUCCEEDED 복구",
+    "status": "PASS",
+    "detail": "[{'status': 'SUCCEEDED', 'reconciliation_attempt_count': 1}]"
+  },
+  {
+    "name": "Timeout 성공 복구 Outbox 발행",
+    "status": "FAIL",
+    "detail": "[{'status': 'PENDING', 'topic': 'moaje.banking.transfer-completed'}]"
+  },
+  {
+    "name": "다개월 전용 계좌 100만원 개설",
+    "status": "PASS",
+    "detail": "HTTP actual=201, expected=201"
+  },
+  {
+    "name": "다개월 시험 전월 기존 revision",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "다개월 fixture 재시험(충분한 초기 잔액)",
+    "status": "PASS",
+    "detail": "HTTP=200, 생성건수=24"
+  },
+  {
+    "name": "fixture 재요청 중복 방지",
+    "status": "PASS",
+    "detail": "HTTP=200, 생성=0, 생략=24"
+  },
+  {
+    "name": "다개월 snapshot 최신 잔액",
+    "status": "PASS",
+    "detail": "HTTP=200, balance=539500"
+  },
+  {
+    "name": "다개월 snapshot 24건 수집",
+    "status": "PASS",
+    "detail": "[{'n': 24}]"
+  },
+  {
+    "name": "전월 자동 revision 재시험",
+    "status": "PASS",
+    "detail": "{'userId': '117421945108177865', 'yearMonth': '2026-09', 'incomeAmount': 0.0, 'expenseAmount': 153500.0, 'transferAmount': 0.0, 'revision': 2, 'calculatedAt': '2026-10-11T11:06:15.001165'}"
+  },
+  {
+    "name": "전월 수정 Work 동기화",
+    "status": "PASS",
+    "detail": "[{'revision': 2, 'total_expense': Decimal('153500.0000')}]"
+  },
+  {
+    "name": "회원 관리용 사용자 가입",
+    "status": "PASS",
+    "detail": "HTTP actual=201, expected=201"
+  },
+  {
+    "name": "Auth 내 정보 조회",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "가입 응답과 내 정보의 사용자 일치",
+    "status": "PASS",
+    "detail": "문자열 사용자 ID 비교"
+  },
+  {
+    "name": "Auth 이름·이메일 수정",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "수정한 프로필 반환",
+    "status": "PASS",
+    "detail": "이름과 이메일 비교"
+  },
+  {
+    "name": "Auth 이메일 삭제",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "이메일 null 저장",
+    "status": "PASS",
+    "detail": "선택 정보 삭제"
+  },
+  {
+    "name": "Gateway 잠금 해제에 access token 불필요",
+    "status": "FAIL",
+    "detail": "HTTP=401; refresh token과 PIN만 전달. 401이면 Gateway 공개 경로 보강 필요"
+  },
+  {
+    "name": "JWT 동반 잠금 해제",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Auth PIN 변경",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "PIN 변경 후 이전 세션 폐기",
+    "status": "PASS",
+    "detail": "HTTP actual=401, expected=401"
+  },
+  {
+    "name": "새 PIN 로그인",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Auth 회원 탈퇴",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "탈퇴 사용자 로그인 차단",
+    "status": "PASS",
+    "detail": "HTTP actual=422, expected=422"
+  },
+  {
+    "name": "탈퇴 사용자 refresh 차단",
+    "status": "PASS",
+    "detail": "HTTP actual=401, expected=401"
+  },
+  {
+    "name": "시험 구간 중단 replay",
+    "status": "FAIL",
+    "detail": "ModuleNotFoundError: No module named 'common'"
+  },
+  {
+    "name": "Asset 동일·다른 eventId 중복 소비",
+    "status": "PASS",
+    "detail": "잔액 before=[{'balance': Decimal('89867.0000')}], after=[{'balance': Decimal('89867.0000')}]; 내부 거래 연결 행=1; 소비 offset 확인"
+  },
+  {
+    "name": "Work 동일·다른 eventId 중복 소비",
+    "status": "PASS",
+    "detail": "처리행 before=150, after=150; 소비 offset 확인"
+  },
+  {
+    "name": "Work 낮은 revision 무시",
+    "status": "PASS",
+    "detail": "[{'year_month': '2026-09', 'revision': 2, 'total_expense': Decimal('153500.0000')}]"
+  },
+  {
+    "name": "손상 Protobuf DLT 적재·원본 추적",
+    "status": "PASS",
+    "detail": "DLT 확인 건수=1, 원본 offset=7, 헤더=['moaje-event-id', 'moaje-aggregate-id', 'moaje-account-id', 'kafka_dlt-exception-fqcn', 'kafka_dlt-exception-cause-fqcn', 'kafka_dlt-exception-message', 'kafka_dlt-exception-stacktrace', 'kafka_dlt-original-topic', 'kafka_dlt-original-partition', 'kafka_dlt-original-offset', 'kafka_dlt-original-timestamp', 'kafka_dlt-original-timestamp-type', 'kafka_dlt-original-consumer-group']"
+  },
+  {
+    "name": "DLT 계좌 복구 대상 지정 지표",
+    "status": "PASS",
+    "detail": "routed=1.0; SYNC_REQUIRED 순간은 별도 직접 관찰하지 않음"
+  },
+  {
+    "name": "DLT 이후 스냅샷 복구·잔액 유지",
+    "status": "PASS",
+    "detail": "[{'balance': Decimal('89867.0000'), 'sync_status': 'SYNCED'}]"
+  },
+  {
+    "name": "Mock 성공 후 응답 Timeout",
+    "status": "PASS",
+    "detail": "[{'status': 'UNKNOWN', 'reconciliation_required': 1}]"
+  },
+  {
+    "name": "Timeout 대사 SUCCEEDED 복구",
+    "status": "PASS",
+    "detail": "[{'status': 'SUCCEEDED', 'reconciliation_attempt_count': 1}]"
+  },
+  {
+    "name": "Timeout 성공 복구 Outbox 발행",
+    "status": "PASS",
+    "detail": "[{'status': 'PUBLISHED', 'topic': 'moaje.banking.transfer-completed'}]"
+  },
+  {
+    "name": "신규 0원 사용자 가입",
+    "status": "PASS",
+    "detail": "HTTP actual=201, expected=201"
+  },
+  {
+    "name": "신규 0원 사용자 로그인",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "신규 ACTIVE 0원 계좌 개설",
+    "status": "PASS",
+    "detail": "HTTP actual=201, expected=201"
+  },
+  {
+    "name": "정상 ACTIVE 0원 일별 계산",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "신규 사용자 첫 수취 송금",
+    "status": "PASS",
+    "detail": "HTTP=200"
+  },
+  {
+    "name": "신규 사용자 실제 성공 이벤트 소비",
+    "status": "PASS",
+    "detail": "[{'n': 1}]"
+  },
+  {
+    "name": "집계 전 신규 사용자 소비 프로필",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "본문 사용자 ID 변조가 JWT 사용자에 영향 없음",
+    "status": "PASS",
+    "detail": "HTTP=200, 기존 거래 ID 유지, DB principal_id=JWT sub"
+  },
+  {
+    "name": "Gateway Swagger 라우팅 /docs/swagger-ui.html",
+    "status": "PASS",
+    "detail": "HTTP=200"
+  },
+  {
+    "name": "Gateway Swagger 라우팅 /docs/auth/openapi.json",
+    "status": "PASS",
+    "detail": "HTTP=200"
+  },
+  {
+    "name": "Gateway Swagger 라우팅 /docs/asset/v3/api-docs",
+    "status": "PASS",
+    "detail": "HTTP=200"
+  },
+  {
+    "name": "Gateway Swagger 라우팅 /docs/banking/v3/api-docs",
+    "status": "PASS",
+    "detail": "HTTP=200"
+  },
+  {
+    "name": "Gateway Swagger 라우팅 /docs/work/openapi.json",
+    "status": "PASS",
+    "detail": "HTTP=200"
+  },
+  {
+    "name": "Gateway Swagger 라우팅 /docs/asset/swagger-ui/swagger-ui-bundle.js",
+    "status": "PASS",
+    "detail": "HTTP=200"
+  },
+  {
+    "name": "빈 MySQL Flyway 검증 banking",
+    "status": "PASS",
+    "detail": "[{'version': '1', 'success': 1}, {'version': '2', 'success': 1}, {'version': '3', 'success': 1}, {'version': '4', 'success': 1}, {'version': '5', 'success': 1}, {'version': '6', 'success': 1}]"
+  },
+  {
+    "name": "빈 MySQL Flyway 검증 asset",
+    "status": "PASS",
+    "detail": "[{'version': '1', 'success': 1}, {'version': '2', 'success': 1}, {'version': '3', 'success': 1}, {'version': '4', 'success': 1}, {'version': '5', 'success': 1}]"
+  },
+  {
+    "name": "최종 Mock·Asset 잔액 일치 117421945108177865",
+    "status": "PASS",
+    "detail": "Mock=89856, Asset=89856.0; 금융 상태의 일치는 별도 판정"
+  },
+  {
+    "name": "최종 Mock·Asset 잔액 일치 117421945136117220",
+    "status": "PASS",
+    "detail": "Mock=10022, Asset=10022.0; 금융 상태의 일치는 별도 판정"
+  },
+  {
+    "name": "타인 계좌 상세 ProblemDetail",
+    "status": "PASS",
+    "detail": "HTTP=403, ProblemDetail status=403, title=DUPLICATE_AUTH"
+  },
+  {
+    "name": "타인 계좌 refresh ProblemDetail",
+    "status": "PASS",
+    "detail": "HTTP=403, ProblemDetail status=403, title=DUPLICATE_AUTH"
+  },
+  {
+    "name": "타인 계좌 목록 ProblemDetail",
+    "status": "PASS",
+    "detail": "HTTP=403, ProblemDetail status=403, title=DUPLICATE_AUTH"
+  },
+  {
+    "name": "다른 계좌 거래 ProblemDetail",
+    "status": "PASS",
+    "detail": "HTTP=404, ProblemDetail status=404, title=NOT_FOUND_ACCOUNT_TRANSFER_HISTORY"
+  },
+  {
+    "name": "없는 계좌 상세 ProblemDetail",
+    "status": "PASS",
+    "detail": "HTTP=404, ProblemDetail status=404, title=ACCOUNT_NOT_FOUND"
+  },
+  {
+    "name": "응답 추출 오류 기록 후 대사 성공",
+    "status": "PASS",
+    "detail": "거래=[{'transfer_id': 897077371503386941, 'status': 'SUCCEEDED', 'reconciliation_attempt_count': 1}], 감사 상태=[{'status': 'UNREADABLE_RESPONSE'}, {'status': 'SUCCESS'}]"
+  },
+  {
+    "name": "불명확 응답에서 실패 이벤트 미생성",
+    "status": "PASS",
+    "detail": "[{'topic': 'moaje.banking.transfer-completed', 'status': 'PUBLISHED'}]"
+  },
+  {
+    "name": "Timeout 복구 Asset 거래 1건",
+    "status": "PASS",
+    "detail": "[{'n': 1}]"
+  },
+  {
+    "name": "Kafka 중단 중 금융 성공",
+    "status": "PASS",
+    "detail": "HTTP=200, status=COMPLETED"
+  },
+  {
+    "name": "Kafka 중단 Outbox 보존·재시도 기록",
+    "status": "PASS",
+    "detail": "[{'status': 'PENDING', 'event_id': '34a2291a-93c3-4fad-8e6c-374b7e05a283', 'attempt_count': 1, 'next_attempt_at': datetime.datetime(2026, 10, 11, 11, 10, 28, 637318)}]"
+  },
+  {
+    "name": "Kafka 복구 같은 eventId 발행",
+    "status": "PASS",
+    "detail": "[{'status': 'PUBLISHED', 'event_id': '34a2291a-93c3-4fad-8e6c-374b7e05a283', 'attempt_count': 4}]"
+  },
+  {
+    "name": "Kafka 복구 Asset 반영 1건",
+    "status": "PASS",
+    "detail": "[{'n': 1}]"
+  },
+  {
+    "name": "진행 중 재요청 PROCESSING·Mock 추가 호출 없음",
+    "status": "PASS",
+    "detail": "HTTP=200, API상태=PROCESSING, Mock POST=9"
+  },
+  {
+    "name": "정상 호출 대기 중 대사 미선점",
+    "status": "PASS",
+    "detail": "[{'status': 'PROCESSING', 'reconciliation_attempt_count': 0}]"
+  },
+  {
+    "name": "송금 중 Banking 강제 종료 응답",
+    "status": "PASS",
+    "detail": "HTTP=500; 서버 종료이므로 성공 응답을 기대하지 않음"
+  },
+  {
+    "name": "서버 종료 후 오래된 PROCESSING 대사 복구",
+    "status": "PASS",
+    "detail": "[{'transfer_id': 897078923945321690, 'status': 'SUCCEEDED', 'reconciliation_attempt_count': 1}]"
+  },
+  {
+    "name": "복구 거래 재요청 외부 재송금 없음",
+    "status": "PASS",
+    "detail": "Mock POST before=9, after=9"
+  },
+  {
+    "name": "서버 종료 복구 Outbox·Asset 연결 1건",
+    "status": "PASS",
+    "detail": "Outbox=[{'status': 'PUBLISHED'}], Asset=[{'n': 1}]"
+  },
+  {
+    "name": "Timeout 원거래와 Banking 상태 일치",
+    "status": "PASS",
+    "detail": "Mock HTTP=200, Mock 상태=SUCCEEDED, Banking={'transfer_id': 897077371503386941, 'status': 'SUCCEEDED', 'failure_reason': None, 'reconciliation_required': 0}; 외부 응답 원문은 기록하지 않음"
+  },
+  {
+    "name": "Timeout 실제 성공 이벤트 복구 여부",
+    "status": "PASS",
+    "detail": "[{'status': 'PUBLISHED', 'topic': 'moaje.banking.transfer-completed'}]"
+  },
+  {
+    "name": "본문 사용자 ID 변조가 JWT 사용자에 영향 없음",
+    "status": "PASS",
+    "detail": "HTTP=200, 기존 거래 ID 유지, DB principal_id=JWT sub"
+  },
+  {
+    "name": "Gateway Swagger 라우팅 /docs/swagger-ui.html",
+    "status": "PASS",
+    "detail": "HTTP=200"
+  },
+  {
+    "name": "Gateway Swagger 라우팅 /docs/auth/openapi.json",
+    "status": "PASS",
+    "detail": "HTTP=200"
+  },
+  {
+    "name": "Gateway Swagger 라우팅 /docs/asset/v3/api-docs",
+    "status": "PASS",
+    "detail": "HTTP=200"
+  },
+  {
+    "name": "Gateway Swagger 라우팅 /docs/banking/v3/api-docs",
+    "status": "PASS",
+    "detail": "HTTP=200"
+  },
+  {
+    "name": "Gateway Swagger 라우팅 /docs/work/openapi.json",
+    "status": "PASS",
+    "detail": "HTTP=200"
+  },
+  {
+    "name": "Gateway Swagger 라우팅 /docs/asset/swagger-ui/swagger-ui-bundle.js",
+    "status": "PASS",
+    "detail": "HTTP=200"
+  },
+  {
+    "name": "빈 MySQL Flyway 검증 banking",
+    "status": "PASS",
+    "detail": "[{'version': '1', 'success': 1}, {'version': '2', 'success': 1}, {'version': '3', 'success': 1}, {'version': '4', 'success': 1}, {'version': '5', 'success': 1}, {'version': '6', 'success': 1}]"
+  },
+  {
+    "name": "빈 MySQL Flyway 검증 asset",
+    "status": "PASS",
+    "detail": "[{'version': '1', 'success': 1}, {'version': '2', 'success': 1}, {'version': '3', 'success': 1}, {'version': '4', 'success': 1}, {'version': '5', 'success': 1}]"
+  },
+  {
+    "name": "최종 Mock·Asset 잔액 일치 117421945108177865",
+    "status": "PASS",
+    "detail": "Mock=89838, Asset=89838.0; 금융 상태의 일치는 별도 판정"
+  },
+  {
+    "name": "최종 Mock·Asset 잔액 일치 117421945136117220",
+    "status": "PASS",
+    "detail": "Mock=10040, Asset=10040.0; 금융 상태의 일치는 별도 판정"
+  },
+  {
+    "name": "Mock 계좌 해지",
+    "status": "PASS",
+    "detail": "HTTP=200"
+  },
+  {
+    "name": "CLOSED 계좌 잔액 합산 제외",
+    "status": "PASS",
+    "detail": "NOT_LINKED"
+  },
+  {
+    "name": "CLOSED 계좌 일별 계산 거절",
+    "status": "PASS",
+    "detail": "HTTP actual=409, expected=409"
+  },
+  {
+    "name": "JWT POST 검증",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "JWT GET 검증",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "계좌 토큰 생성",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "계좌 토큰 검증",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "refresh 교체",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "이전 refresh 재사용 거절",
+    "status": "PASS",
+    "detail": "HTTP actual=401, expected=401"
+  },
+  {
+    "name": "로그아웃",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "로그아웃 refresh 거절",
+    "status": "PASS",
+    "detail": "HTTP actual=401, expected=401"
+  }
+]

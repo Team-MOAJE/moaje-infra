@@ -1,0 +1,87 @@
+[
+  {
+    "name": "회원 관리용 사용자 가입",
+    "status": "PASS",
+    "detail": "HTTP actual=201, expected=201"
+  },
+  {
+    "name": "Auth 내 정보 조회",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "가입 응답과 내 정보의 사용자 일치",
+    "status": "PASS",
+    "detail": "문자열 사용자 ID 비교"
+  },
+  {
+    "name": "Auth 이름·이메일 수정",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "수정한 프로필 반환",
+    "status": "PASS",
+    "detail": "이름과 이메일 비교"
+  },
+  {
+    "name": "Auth 이메일 삭제",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "이메일 null 저장",
+    "status": "PASS",
+    "detail": "선택 정보 삭제"
+  },
+  {
+    "name": "JWT 없는 잠금 해제도 잘못된 PIN은 거절",
+    "status": "PASS",
+    "detail": "HTTP actual=401, expected=401"
+  },
+  {
+    "name": "Gateway 잠금 해제에 access token 불필요",
+    "status": "PASS",
+    "detail": "HTTP=200; refresh token과 PIN만 전달. 401이면 Gateway 공개 경로 보강 필요"
+  },
+  {
+    "name": "잠금 해제 후 이전 refresh 재사용 거절",
+    "status": "PASS",
+    "detail": "HTTP actual=401, expected=401"
+  },
+  {
+    "name": "JWT 동반 잠금 해제",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Auth PIN 변경",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "PIN 변경 후 이전 세션 폐기",
+    "status": "PASS",
+    "detail": "HTTP actual=401, expected=401"
+  },
+  {
+    "name": "새 PIN 로그인",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "Auth 회원 탈퇴",
+    "status": "PASS",
+    "detail": "HTTP actual=200, expected=200"
+  },
+  {
+    "name": "탈퇴 사용자 로그인 차단",
+    "status": "PASS",
+    "detail": "HTTP actual=422, expected=422"
+  },
+  {
+    "name": "탈퇴 사용자 refresh 차단",
+    "status": "PASS",
+    "detail": "HTTP actual=401, expected=401"
+  }
+]

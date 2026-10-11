@@ -101,16 +101,20 @@ async def transfer(user, receiver, key, amount=10000):
 async def setup():
     users = []
     for i in range(3):
-        email = f'e2e-{i}@moaje.test'
-        registered = await call(f'가입 {i}', 'POST', '/api/v1/auth/register', body={'email': email, 'pin': '123456'}, want=201)
-        login = await call(f'로그인 {i}', 'POST', '/api/v1/auth/login', body={'email': email, 'pin': '123456'})
+        # 최신 Auth는 SMS 대신 휴대폰 번호와 PIN, 약관 동의를 받는다.
+        # 아래 번호는 문자 발송에 사용하지 않는 격리 환경의 합성 테스트 입력이다.
+        registration = registration_body(i)
+        registered = await call(f'가입 {i}', 'POST', '/api/v1/auth/register', body=registration, want=201)
+        login = await call(f'로그인 {i}', 'POST', '/api/v1/auth/login', body={'phone_number': registration['phone_number'], 'pin': '123456'})
         user = {'id': str(registered['data']['user_id']), 'token': login['data']['access_token'],
                 'refresh': login['data']['refresh_token'], 'ci': f'E2E-CI-{i}'}
         users.append(user)
     sender, receiver, empty = users
-    await call('중복 가입', 'POST', '/api/v1/auth/register', body={'email': 'e2e-0@moaje.test', 'pin': '123456'}, want=409)
-    await call('잘못된 PIN 길이', 'POST', '/api/v1/auth/register', body={'email': 'bad@moaje.test', 'pin': '12345'}, want=400)
-    await call('잘못된 PIN 로그인', 'POST', '/api/v1/auth/login', body={'email': 'e2e-0@moaje.test', 'pin': '654321'}, want=422)
+    await call('중복 가입', 'POST', '/api/v1/auth/register', body=registration_body(0), want=409)
+    await call('잘못된 PIN 길이', 'POST', '/api/v1/auth/register', body={**registration_body(9), 'pin': '12345'}, want=400)
+    await call('필수 약관 거부', 'POST', '/api/v1/auth/register', body={**registration_body(9), 'terms_agreed': False}, want=400)
+    await call('PIN 확인 불일치', 'POST', '/api/v1/auth/register', body={**registration_body(9), 'pin_confirm': '654321'}, want=400)
+    await call('잘못된 PIN 로그인', 'POST', '/api/v1/auth/login', body={'phone_number': registration_body(0)['phone_number'], 'pin': '654321'}, want=422)
     await call('무인증 Asset 차단', 'GET', '/api/v1/assets/accounts/1/detail', want=401)
     await call('위조 사용자 헤더 차단', 'GET', '/api/v1/assets/accounts/1/detail', headers={'X-Authenticated-User-Id': sender['id']}, want=401)
     for user, balance in [(sender, 100000), (receiver, 0)]:
@@ -134,6 +138,12 @@ async def setup():
         record('계좌 생성 이벤트 Asset 반영 ' + user['id'], detail and detail[0] == 200, '계좌 상세 조회 가능')
     STATE.write_text(json.dumps(users), encoding='utf-8')
     return users
+
+
+def registration_body(index):
+    return {'phone_number': f'0109000000{index}', 'name': '통합시험 사용자',
+            'pin': '123456', 'pin_confirm': '123456', 'terms_agreed': True,
+            'privacy_agreed': True, 'terms_version': 'e2e-v1', 'privacy_version': 'e2e-v1'}
 
 
 async def normal(users):
@@ -273,15 +283,18 @@ async def work_apis(users):
     await call('운영 재방문 지표', 'GET', root + '/metrics/retention', user, headers=ops)
 
 
-async def timeout(users):
+async def timeout(users, key='e2e-timeout'):
     sender, receiver, _ = users
     await CLIENT.post('http://fault-proxy:18081/__control', json={'delay_once': True, 'forwarded': False})
-    status, result = await transfer(sender, receiver, 'e2e-timeout', 10)
+    status, result = await transfer(sender, receiver, key, 10)
     rows = await query('banking', 'select status,reconciliation_required from banking_transfer where transfer_id=%s', (result['transferId'],))
     record('Mock 성공 후 응답 Timeout', status == 200 and rows[0]['status'] in ('UNKNOWN', 'SUCCEEDED'), str(rows))
     recovered = await poll(lambda: query('banking', 'select status,reconciliation_attempt_count from banking_transfer where transfer_id=%s', (result['transferId'],)), lambda x: x[0]['status'] == 'SUCCEEDED', 90)
     record('Timeout 대사 SUCCEEDED 복구', recovered[0]['status'] == 'SUCCEEDED' and recovered[0]['reconciliation_attempt_count'] >= 1, str(recovered))
-    final = await query('banking', 'select status,topic from banking_outbox where aggregate_id=%s', (str(result['transferId']),))
+    # 거래 결과 커밋과 Kafka 발행은 서로 다른 작업이다.
+    # SUCCEEDED 직후 PENDING인 것은 정상이며, 발행 완료 조건을 제한 시간 안에서 기다려 검증한다.
+    final = await poll(lambda: query('banking', 'select status,topic from banking_outbox where aggregate_id=%s', (str(result['transferId']),)),
+                       lambda rows: any(row['status'] == 'PUBLISHED' and row['topic'] == 'moaje.banking.transfer-completed' for row in rows), 45)
     record('Timeout 성공 복구 Outbox 발행', bool(final) and any(r['status'] == 'PUBLISHED' and r['topic'] == 'moaje.banking.transfer-completed' for r in final), str(final))
 
 

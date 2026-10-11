@@ -1,5 +1,7 @@
 # MOAJE 종합 통합 테스트 계획
 
+**최신 재검증은 [2026-10-11 결과](integration-test-results-20261011.md)를 참고한다. 아래는 10월 10일 당시의 규격·실행 이력이며, 현재 가입은 휴대폰 번호와 PIN 기준이다.**
+
 상태: 2026-10-10 사용자 승인 후 격리 환경에서 실행. 가입은 현행 email + 6자리 PIN 기준이며 SMS는 제외했다.
 최신 r3 결과: Asset `ba67f54` 커밋·push 후 Banking `ee36b69`와 Mock 오류 코드 변경을 재빌드했다. 검증 기록 159건 중 157건 통과, Auth 타인 계좌 토큰 발급·Work 집계 전 프로필 조회 2건 실패다. 이전 Banking Timeout 오분류와 Asset 500 응답은 이번 조건에서 해결됨을 확인했다. Timeout은 UNKNOWN → 대사 1회 → SUCCEEDED → 성공 Outbox → Asset 거래 1건으로 복구됐다. 실제 403·404 ProblemDetail 응답도 확인했다.
 [최신 수정 후 PDF 결과](../output/pdf/moaje-integration-retest-fixed-20261010.pdf). `moaje-e2e-20261010-r3`의 컨테이너·볼륨·인증서는 제거했고 기존 개발 볼륨 7개는 보존했다. 아래 r2 결과는 수정 전의 역사적 기록이다.

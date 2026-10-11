@@ -1,11 +1,12 @@
 # MOAJE 통합 API 테스트 가이드
 
-이 문서는 로컬 Docker Compose 환경에서 Auth, Banking, Mock Banking, Asset이 연결된 흐름을 직접 확인하는 절차를 설명한다.
+이 문서는 로컬 Docker Compose 환경에서 Auth, Banking, Mock Banking, Asset, Work가 연결된 흐름을 직접 확인하는 절차를 설명한다.
+새 PC의 설치·키 설정·기동·초기화는 [다른 PC 실행 안내](run-on-another-pc.md)를 먼저 확인한다.
 
 ## 1. 사전 준비
 
 - Docker Desktop을 실행한다.
-- `C:\moaje` 아래에 `moaje-auth`, `moaje-banking`, `moaje-asset`, `backing-mockup`, `moaje-grpc-contracts`, `moaje-infra`가 있어야 한다.
+- `C:\moaje` 아래에 `moaje-auth`, `moaje-work`, `moaje-banking`, `moaje-asset`, `backing-mockup`, `moaje-grpc-contracts`, `moaje-infra`가 있어야 한다.
 - 실제 개인정보, 계좌번호, 운영 비밀키를 테스트 데이터로 사용하지 않는다.
 - `.env.example`을 참고하여 `moaje-infra/.env`의 JWT·암호화 키를 로컬 값으로 설정한다.
 
@@ -25,9 +26,12 @@ docker compose --profile apps ps
 http://localhost:8080/docs/swagger-ui.html
 ```
 
-상단 `Select a definition`에서 Auth, Banking, Asset 문서를 전환한다. API 요청은 모두 Gateway `localhost:8080`을 통과한다.
+상단 `Select a definition`에서 Auth, Banking, Asset, Work 문서를 전환한다. API 요청은 모두 Gateway `localhost:8080`을 통과한다.
 
 월별 테스트 데이터까지 만들려면 `test-tools` 프로필을 함께 실행한다.
+
+> 2026-10-11 후속 검증: Fixture Console·seed 스크립트를 현재 휴대폰 가입 규격으로 수정했다.
+> 화면의 생성 API는 3개월 24건, `.sh`는 현재 월 8건 생성과 집계까지 확인했다. [검증 결과](gateway-persona-retest-20261011.md).
 
 ```powershell
 docker compose --profile apps --profile test-tools up -d --build
@@ -45,23 +49,36 @@ http://localhost:8090
 
 ```json
 {
-  "email": "sender@moaje.test",
-  "pin": "123456"
+  "phone_number": "01090000001",
+  "name": "송금 테스트",
+  "pin": "123456",
+  "pin_confirm": "123456",
+  "terms_agreed": true,
+  "privacy_agreed": true,
+  "terms_version": "test-v1",
+  "privacy_version": "test-v1"
 }
 ```
 
 ```json
 {
-  "email": "receiver@moaje.test",
-  "pin": "123456"
+  "phone_number": "01090000002",
+  "name": "수취 테스트",
+  "pin": "123456",
+  "pin_confirm": "123456",
+  "terms_agreed": true,
+  "privacy_agreed": true,
+  "terms_version": "test-v1",
+  "privacy_version": "test-v1"
 }
 ```
 
+위 값은 SMS를 보내지 않는 개발용 예시다. 이메일은 선택이며, 휴대폰 번호와 6자리 PIN으로 로그인한다.
 `POST /api/v1/auth/login` 응답의 `data.access_token`을 사용자별로 보관한다.
 
 ```json
 {
-  "email": "sender@moaje.test",
+  "phone_number": "01090000001",
   "pin": "123456",
   "device_info": "swagger-test"
 }
@@ -220,6 +237,10 @@ Asset DB에 거래를 직접 INSERT하면 Snapshot 수집, 거래 분류, 중복
 3. `테스트 데이터 생성`을 누른다.
 4. 화면에서 사용자·계좌 ID, 월별 총지출, 카테고리별 금액을 확인한다.
 
+결과에 표시되는 **휴대폰 번호와 PIN**으로 Swagger의 Auth 로그인 API를 호출한다.
+번호는 자동 생성한 테스트 입력이며 SMS는 발송하지 않는다. 이메일은 선택 정보로만 저장한다.
+도구가 보내는 `local-test-v1` 약관 버전과 동의 값은 합성 테스트 데이터이며 실제 사용자의 동의 기록이 아니다.
+
 지원 페르소나:
 
 | 페르소나 | 특징 |
@@ -256,6 +277,7 @@ sh scripts/seed-monthly-cashflow-persona.sh
 | UNCATEGORIZED | 7,000원 |
 
 필수 명령은 `docker`, `curl`, `jq`, `openssl`이다. 기본 URL이나 HMAC 비밀값이 다르면 환경변수로 전달한다.
+`PERSONA_PHONE=01090000009`처럼 번호를 지정할 수도 있다. 같은 번호를 재사용하면 Auth의 중복 가입 검증으로 거절되므로 새 번호를 사용한다.
 
 ```sh
 GATEWAY_URL=http://localhost:8080 \
