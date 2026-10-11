@@ -426,7 +426,7 @@ services:
       AUTH_JWT_JWK_SET_URI: ${AUTH_JWT_JWK_SET_URI:-}
       AUTH_JWT_ALGORITHM: ${AUTH_JWT_ALGORITHM:-HS256}
       AUTH_JWT_SECRET_KEY: ${AUTH_JWT_SECRET_KEY:-}
-      AUTH_PUBLIC_ENDPOINTS: ${AUTH_PUBLIC_ENDPOINTS:-POST /api/v1/auth/register,POST /api/v1/auth/login,POST /api/v1/auth/refresh,POST /api/v1/auth/logout,POST /api/v1/auth/token/validate,GET /api/v1/auth/token/validate}
+      AUTH_PUBLIC_ENDPOINTS: ${AUTH_PUBLIC_ENDPOINTS:-POST /api/v1/auth/register,POST /api/v1/auth/login,POST /api/v1/auth/refresh,POST /api/v1/auth/logout,POST /api/v1/auth/token/validate,GET /api/v1/auth/token/validate,POST /api/v1/auth/session/unlock}
       AUTH_SERVICE_URI: ${AUTH_SERVICE_URI:-http://auth:8000}
       ASSET_SERVICE_URI: http://asset:8082
       BANKING_SERVICE_URI: http://banking:8080

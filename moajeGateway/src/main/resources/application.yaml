@@ -98,7 +98,7 @@ moaje:
       jwk-set-uri: ${AUTH_JWT_JWK_SET_URI:}
       algorithm: ${AUTH_JWT_ALGORITHM:}
       secret-key: ${AUTH_JWT_SECRET_KEY:}
-      public-endpoints: ${AUTH_PUBLIC_ENDPOINTS:POST /api/v1/auth/register,POST /api/v1/auth/login,POST /api/v1/auth/refresh,POST /api/v1/auth/logout,POST /api/v1/auth/token/validate,GET /api/v1/auth/token/validate}
+      public-endpoints: ${AUTH_PUBLIC_ENDPOINTS:POST /api/v1/auth/register,POST /api/v1/auth/login,POST /api/v1/auth/refresh,POST /api/v1/auth/logout,POST /api/v1/auth/token/validate,GET /api/v1/auth/token/validate, POST /api/v1/auth/session/unlock}
     guard:
       trace-header-name: X-Trace-Id
       internal-headers:

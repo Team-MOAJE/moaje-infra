@@ -271,8 +271,9 @@ async def timeout_audit(users):
 
 async def fresh_profile(users):
     from redis.asyncio import Redis
-    r = await b.call('신규 0원 사용자 가입', 'POST', '/api/v1/auth/register', body={'email': 'e2e-profile@moaje.test', 'pin': '123456'}, want=201)
-    login = await b.call('신규 0원 사용자 로그인', 'POST', '/api/v1/auth/login', body={'email': 'e2e-profile@moaje.test', 'pin': '123456'})
+    registration = b.registration_body(5)
+    r = await b.call('신규 0원 사용자 가입', 'POST', '/api/v1/auth/register', body=registration, want=201)
+    login = await b.call('신규 0원 사용자 로그인', 'POST', '/api/v1/auth/login', body={'phone_number': registration['phone_number'], 'pin': '123456'})
     user = {'id': str(r['data']['user_id']), 'token': login['data']['access_token'], 'ci': 'E2E-PROFILE-CI'}
     account = await b.call('신규 ACTIVE 0원 계좌 개설', 'POST', '/api/v1/banking/accounts', user,
         {'ci': user['ci'], 'userName': '테스트 사용자', 'phoneNumber': '01000000000', 'bankCode': '001', 'productName': 'E2E-PROFILE', 'initialBalance': 0}, want=201)
@@ -363,7 +364,7 @@ async def main():
             await section('RPC·Auth 소유권', lambda: rpc(users))
         else:
             users = json.loads(b.STATE.read_text())
-            actions = {'timeout': b.timeout, 'multimonth': b.multimonth, 'replay': replay,
+            actions = {'timeout': b.timeout, 'timeout-recheck': lambda u: b.timeout(u, 'e2e-timeout-recheck'), 'multimonth': b.multimonth, 'replay': replay,
                        'outage': outage, 'recovered': lambda u: outage(u, True), 'final': final,
                        'dlt': dlt, 'crash': crash, 'crash-recovered': lambda u: crash(u, True), 'timeout-audit': timeout_audit,
                        'fresh-profile': fresh_profile, 'audit': audit, 'fixes': fixes}
@@ -371,4 +372,5 @@ async def main():
     return int(any(r['status'] == 'FAIL' for r in b.ROWS[start:]))
 
 
-sys.exit(asyncio.run(main()))
+if __name__ == '__main__':
+    sys.exit(asyncio.run(main()))

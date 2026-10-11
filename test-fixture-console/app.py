@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import secrets
 import time
 import urllib.error
 import urllib.request
@@ -37,6 +38,10 @@ def request_json(
 def create_persona(persona: str, months: int) -> dict[str, Any]:
     suffix = f"{int(time.time())}-{uuid.uuid4().hex[:8]}"
     email = f"fixture-{suffix}@moaje.test"
+    # SMS를 발송하지 않는 로컬 테스트용 번호다. 실행마다 바꿔 중복 가입을 피한다.
+    # 이메일은 선택 정보이며, 로그인은 이 번호와 PIN으로 진행한다.
+    phone_number = f"010{secrets.randbelow(100_000_000):08d}"
+    user_name = "Fixture Persona"
     pin = "123456"
     owner_ci = f"TEST-CI-FIXTURE-{suffix}"
     product_name = f"Fixture Account {suffix}"
@@ -45,12 +50,14 @@ def create_persona(persona: str, months: int) -> dict[str, Any]:
     register = request_json(
         "POST",
         f"{GATEWAY_URL}/api/v1/auth/register",
-        {"email": email, "pin": pin},
+        {"phone_number": phone_number, "name": user_name, "email": email,
+         "pin": pin, "pin_confirm": pin, "terms_agreed": True, "privacy_agreed": True,
+         "terms_version": "local-test-v1", "privacy_version": "local-test-v1"},
     )
     login = request_json(
         "POST",
         f"{GATEWAY_URL}/api/v1/auth/login",
-        {"email": email, "pin": pin, "device_info": "test-fixture-console"},
+        {"phone_number": phone_number, "pin": pin, "device_info": "test-fixture-console"},
     )
     jwt = login["data"]["access_token"]
     authorization = {"Authorization": f"Bearer {jwt}"}
@@ -60,8 +67,8 @@ def create_persona(persona: str, months: int) -> dict[str, Any]:
         f"{GATEWAY_URL}/api/v1/banking/accounts",
         {
             "ci": owner_ci,
-            "userName": "Fixture Persona",
-            "phoneNumber": "01000000004",
+            "userName": user_name,
+            "phoneNumber": phone_number,
             "bankCode": "001",
             "productName": product_name,
             "initialBalance": 5_000_000,
@@ -121,6 +128,7 @@ def create_persona(persona: str, months: int) -> dict[str, Any]:
         "createdTransactionCount": fixture["createdTransactionCount"],
         "userId": str(register["data"]["user_id"]),
         "email": email,
+        "phoneNumber": phone_number,
         "pin": pin,
         "accountId": account_id,
         "aggregates": aggregates,

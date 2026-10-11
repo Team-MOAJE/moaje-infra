@@ -98,7 +98,7 @@
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || '생성에 실패했습니다.');
             summary.innerHTML = `
-                <div><span>사용자</span><strong>${data.email}</strong></div>
+                <div><span>로그인 휴대폰 번호</span><strong>${data.phoneNumber}</strong></div>
                 <div><span>PIN</span><strong>${data.pin}</strong></div>
                 <div><span>Account ID</span><strong>${data.accountId}</strong></div>
                 <div><span>생성 거래</span><strong>${data.createdTransactionCount}건</strong></div>`;
