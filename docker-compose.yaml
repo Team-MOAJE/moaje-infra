@@ -1,4 +1,33 @@
 services:
+  work-mysql:
+    profiles: ["apps"]
+    image: mysql:8.0
+    container_name: ${MOAJE_STACK_PREFIX:-moaje}-work-mysql
+    mem_limit: 768m
+    # Work 전용 DB는 내부 네트워크에서만 접근한다. Auth의 호스트 3309 포트와 충돌하지 않는다.
+    environment:
+      MYSQL_DATABASE: work_db
+      MYSQL_ROOT_PASSWORD: ${WORK_MYSQL_ROOT_PASSWORD:-moaje-work-local-root}
+      MYSQL_USER: moaje_work
+      MYSQL_PASSWORD: ${WORK_MYSQL_PASSWORD:-moaje-work-local}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb-buffer-pool-size=128M
+      - --performance-schema=OFF
+      - --max-connections=50
+    volumes:
+      - work-mysql-data:/var/lib/mysql
+      # 팀원이 제공한 초기 스키마와 학사 일정. 빈 Work 볼륨의 최초 기동에만 실행된다.
+      - ../moaje-work/scripts/init.sql:/docker-entrypoint-initdb.d/01-work.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", 'MYSQL_PWD="$$MYSQL_PASSWORD" mysql -h127.0.0.1 -u"$$MYSQL_USER" "$$MYSQL_DATABASE" -e "SELECT 1" >/dev/null 2>&1']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    restart: "no"
+
   auth-mysql:
     image: mysql:8.4
     container_name: ${MOAJE_STACK_PREFIX:-moaje}-auth-mysql
@@ -217,12 +246,41 @@ services:
       - "127.0.0.1:${MOCK_BANKING_PORT:-8081}:8081"
     environment:
       JAVA_TOOL_OPTIONS: "-Xms64m -Xmx384m"
+      SPRING_PROFILES_ACTIVE: local
       REDIS_HOST: mock-redis
       REDIS_PORT: 6379
       MOAJE_BANKING_SECRET: ${MOAJE_BANKING_HMAC_SECRET:-Moaje-banking-secret}
+      MOAJE_FIXTURE_ENABLED: "true"
+      MOAJE_FIXTURE_ADMIN_TOKEN: ${MOAJE_FIXTURE_ADMIN_TOKEN:-moaje-local-fixture-token}
     depends_on:
       mock-redis:
         condition: service_healthy
+    restart: "no"
+
+  test-fixture-console:
+    profiles: ["test-tools"]
+    container_name: ${MOAJE_STACK_PREFIX:-moaje}-test-fixture-console
+    mem_limit: 128m
+    build:
+      context: ./test-fixture-console
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:${TEST_FIXTURE_CONSOLE_PORT:-8090}:8090"
+    environment:
+      GATEWAY_URL: http://gateway:8080
+      MOCK_BANKING_URL: http://mock-banking:8081
+      FIXTURE_ADMIN_TOKEN: ${MOAJE_FIXTURE_ADMIN_TOKEN:-moaje-local-fixture-token}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      gateway:
+        condition: service_started
+      mock-banking:
+        condition: service_started
     restart: "no"
 
   asset:
@@ -306,6 +364,52 @@ services:
         condition: service_started
     restart: "no"
 
+  work:
+    profiles: ["apps"]
+    container_name: ${MOAJE_STACK_PREFIX:-moaje}-work
+    mem_limit: 1g
+    build:
+      context: ../moaje-work
+      dockerfile: Dockerfile
+    # reload와 소스 바인드 마운트 없이 이미지의 코드 한 벌을 실행한다.
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8084"]
+    # Work는 자신의 인증서와 CA 공개 인증서만 읽는다. CA 개인키는 공유하지 않는다.
+    volumes:
+      - ${MOAJE_GRPC_CERTS_DIR:-./certs}/work:/run/grpc:ro
+    environment:
+      APP_ENV: development
+      DATABASE_URL: mysql+aiomysql://moaje_work:${WORK_MYSQL_PASSWORD:-moaje-work-local}@work-mysql:3306/work_db
+      REDIS_URL: redis://redis:6379/0
+      REDIS_KEY_PREFIX: "work:"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      KAFKA_CONSUMER_GROUP: moaje-work
+      ASSET_GRPC_TARGET: asset:9090
+      GRPC_TIMEOUT_SEC: 3.0
+      ASSET_GRPC_CA_PATH: /run/grpc/ca.crt
+      WORK_GRPC_CERT_PATH: /run/grpc/work.crt
+      WORK_GRPC_KEY_PATH: /run/grpc/work.key
+      # 빈 값이면 Work의 운영 API는 503으로 닫힌다. 실제 토큰은 로컬 .env에만 둔다.
+      WORK_INTERNAL_TOKEN: ${WORK_INTERNAL_TOKEN:-}
+    # HTTP/gRPC는 호스트에 공개하지 않는다. 사용자 요청은 JWT를 검사하는 Gateway를 거친다.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import json, urllib.request; r=json.load(urllib.request.urlopen('http://127.0.0.1:8084/health', timeout=3)); assert r['status'] == 'ok' and r['components']['asset_grpc_mtls']['status'] == 'ok', r"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    depends_on:
+      work-mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      grpc-cert-init:
+        condition: service_completed_successfully
+      asset:
+        condition: service_started
+    restart: "no"
+
   gateway:
     profiles: ["apps"]
     container_name: ${MOAJE_STACK_PREFIX:-moaje}-gateway
@@ -322,13 +426,11 @@ services:
       AUTH_JWT_JWK_SET_URI: ${AUTH_JWT_JWK_SET_URI:-}
       AUTH_JWT_ALGORITHM: ${AUTH_JWT_ALGORITHM:-HS256}
       AUTH_JWT_SECRET_KEY: ${AUTH_JWT_SECRET_KEY:-}
-      AUTH_PUBLIC_ENDPOINTS: ${AUTH_PUBLIC_ENDPOINTS:-POST /api/v1/auth/register,POST /api/v1/auth/login,POST /api/v1/auth/refresh,POST /api/v1/auth/logout,POST /api/v1/auth/token/validate,GET /api/v1/auth/token/validate}
+      AUTH_PUBLIC_ENDPOINTS: ${AUTH_PUBLIC_ENDPOINTS:-POST /api/v1/auth/register,POST /api/v1/auth/login,POST /api/v1/auth/refresh,POST /api/v1/auth/logout,POST /api/v1/auth/token/validate,GET /api/v1/auth/token/validate,POST /api/v1/auth/session/unlock}
       AUTH_SERVICE_URI: ${AUTH_SERVICE_URI:-http://auth:8000}
       ASSET_SERVICE_URI: http://asset:8082
       BANKING_SERVICE_URI: http://banking:8080
-      WORK_SERVICE_URI: http://host.docker.internal:8084
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      WORK_SERVICE_URI: http://work:8084
     depends_on:
       auth:
         condition: service_healthy
@@ -336,6 +438,8 @@ services:
         condition: service_started
       banking:
         condition: service_started
+      work:
+        condition: service_healthy
     restart: "no"
 
   grpc-cert-init:
@@ -384,6 +488,7 @@ services:
     restart: "no"
 
 volumes:
+  work-mysql-data:
   auth-mysql-data:
   asset-mysql-data:
   banking-mysql-data:

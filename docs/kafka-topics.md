@@ -38,10 +38,28 @@
 
 월 집계 이벤트에는 `yearMonth`와 `revision`이 포함된다. Work는 `(userId, yearMonth)`별로 가장 큰 revision만 최종 결과로 사용해야 한다.
 
+## Work (검증 기준 0f73ea5, 2026-10-10)
+
+Consumer Group은 `moaje-work`이며 Asset과 분리한다. 공용 Kafka `kafka:29092`에 연결한다.
+
+| 방향 | Topic | 규격 |
+|---|---|---|
+| 소비 | `transaction_succeeded_events` | Protobuf. 실제 소비·거래 중복 방지 검사 통과 |
+| 소비 | `moaje.asset.monthly-cashflow-aggregated` | Protobuf. 실제 소비·최신 revision 유지 검사 통과 |
+| 소비 | `moaje.asset.category-cashflow-aggregated` | Protobuf. 실제 소비·최신 revision 유지 검사 통과 |
+| 소비 | `auth.user.registered` | JSON, Auth의 실제 발행은 미확정 |
+| 발행·자기 소비 | `work.fds.alert` | JSON |
+| 발행 | `work.spending.analyzed` | JSON |
+| 발행 | `work.schedule.updated` | JSON |
+
+로컬 Kafka의 기존 자동 토픽 생성 설정을 유지한다. 구독·발행 시 필요한 토픽이 생성되며, 아직 발행하지 않은 토픽은 목록에 없을 수 있다.
+Consumer 연결 성공과 실제 이벤트 처리 성공은 별도 검증 대상이다.
+현재 계약 검사에서 불일치 0건이다. 위 3종은 테스트 Protobuf를 발행해 실제 Work DB 결과까지 확인했다. Asset Outbox를 거친 전체 흐름 검증과는 구분한다. [검사 결과와 재현 방법](work-integration-check.md)을 참고한다.
+
 ## 아직 확정되지 않은 부분
 
-- Work의 Consumer Group 이름과 재처리 정책
+- Work의 실패 이벤트 재처리·DLT 정책과 전체 메시지 호환성 검증
 - Auth가 Kafka를 사용할지 여부 및 Topic 계약
-- Work가 만든 분석 결과를 다른 서비스로 전달할 Topic
+- Work 발행 Topic을 소비할 다른 서비스와 처리 계약
 
 위 항목은 각 모듈 담당자와 계약을 확정한 뒤 추가한다.
