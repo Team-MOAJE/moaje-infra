@@ -1,0 +1,5421 @@
+{
+  "apis": [
+    {
+      "group": "Auth",
+      "path": "/api/v1/auth/register",
+      "method": "POST",
+      "title": "회원가입",
+      "response": "ApiResponse[RegisterResponse]",
+      "body": "RegisterRequest",
+      "params": [],
+      "status": 201,
+      "source": "moaje-auth\\app\\api\\auth.py",
+      "line": 42,
+      "symbol": "register",
+      "operator": false,
+      "auth": false,
+      "note": "email 길이 3~255, PIN은 숫자 6자리 문자열. 현재 SMS·휴대폰 회원가입 API는 없다. 가입 성공만으로 로그인되지 않으며 토큰은 /login에서 받는다. 중복 409, 입력 검증 400.",
+      "store": "이메일은 로그인 화면 자동 채움용으로 동의를 받아 보관 가능. PIN은 요청 직후 메모리에서 비운다. user_id는 사용자 세션에 보관하되 큰 정수 정밀도 주의. 서버가 정한 앱 보관 TTL은 없다.",
+      "resend": "로그인 시 email+pin. user_id를 JWT 대신 인증정보로 보내지 않는다.",
+      "request": {
+        "email": "student@example.test",
+        "pin": "123456"
+      },
+      "response_value": {
+        "success": true,
+        "status": 201,
+        "code": "AUTH-201-001",
+        "message": "성공 안내 문구",
+        "data": {
+          "user_id": 123,
+          "email": "student@example.test",
+          "is_active": true
+        },
+        "error": null,
+        "traceId": "example-trace-id",
+        "timestamp": "2026-10-11T03:00:00Z"
+      },
+      "id": "API-01"
+    },
+    {
+      "group": "Auth",
+      "path": "/api/v1/auth/login",
+      "method": "POST",
+      "title": "로그인",
+      "response": "ApiResponse[TokenResponse]",
+      "body": "LoginRequest",
+      "params": [],
+      "status": 200,
+      "source": "moaje-auth\\app\\api\\auth.py",
+      "line": 69,
+      "symbol": "login",
+      "operator": false,
+      "auth": false,
+      "note": "email+PIN으로 로그인. device_info는 선택(최대 500자). 잘못된 인증정보는 현재 422. 응답에는 user_id가 없으므로 GET /token/validate에서 문자열 user_id를 얻는다. token_type은 bearer.",
+      "store": "Access는 메모리, Refresh는 앱의 OS 보안 저장소 보관을 권장한다. 기본 Access 30분/Refresh 14일은 서버 설정값이며 고정 계약이 아니다. 실제 Access는 expires_in으로 만료 관리. Refresh 만료시각은 응답에 없으므로 401도 처리한다. 재발급 시 두 값 교체, 로그아웃·계정 변경 시 삭제. PIN은 저장하지 않는다.",
+      "resend": "Access는 보호 API Authorization 헤더, Refresh는 /refresh·/logout 본문에만. Refresh를 일반 API 헤더에 보내지 않는다.",
+      "request": {
+        "email": "student@example.test",
+        "pin": "123456",
+        "device_info": "MOAJE Android test"
+      },
+      "response_value": {
+        "success": true,
+        "status": 200,
+        "code": "AUTH-200-001",
+        "message": "성공 안내 문구",
+        "data": {
+          "access_token": "<ACCESS_TOKEN>",
+          "refresh_token": "<REFRESH_TOKEN>",
+          "token_type": "bearer",
+          "expires_in": 1800
+        },
+        "error": null,
+        "traceId": "example-trace-id",
+        "timestamp": "2026-10-11T03:00:00Z"
+      },
+      "id": "API-02"
+    },
+    {
+      "group": "Auth",
+      "path": "/api/v1/auth/token/validate",
+      "method": "POST",
+      "title": "Access Token 유효성 확인",
+      "response": "ApiResponse[ValidateAccessTokenResponse]",
+      "body": "ValidateAccessTokenRequest",
+      "params": [],
+      "status": 200,
+      "source": "moaje-auth\\app\\api\\auth.py",
+      "line": 96,
+      "symbol": "validate_token",
+      "operator": false,
+      "auth": false,
+      "note": "HTTP 200만으로 유효하다고 보지 말고 data.is_valid 확인. POST는 body.access_token, GET은 Authorization: Bearer 사용. expires_at은 Unix 초.",
+      "store": "유효한 user_id 문자열과 expires_at은 로그인 세션 동안 보관. is_valid=false면 인증 상태로 사용하지 않는다.",
+      "resend": "Work의 Path/필수 Body user_id에 이 값을 사용한다. Banking·Asset에는 사용자 ID 대신 JWT만.",
+      "request": {
+        "access_token": "<ACCESS_TOKEN>"
+      },
+      "response_value": {
+        "success": true,
+        "status": 200,
+        "code": "AUTH-200-004",
+        "message": "성공 안내 문구",
+        "data": {
+          "is_valid": true,
+          "user_id": 123,
+          "expires_at": 1791689400
+        },
+        "error": null,
+        "traceId": "example-trace-id",
+        "timestamp": "2026-10-11T03:00:00Z"
+      },
+      "id": "API-03"
+    },
+    {
+      "group": "Auth",
+      "path": "/api/v1/auth/token/validate",
+      "method": "GET",
+      "title": "Access Token 유효성 확인",
+      "response": "ApiResponse[ValidateAccessTokenResponse]",
+      "body": null,
+      "params": [
+        {
+          "name": "authorization",
+          "type": "str",
+          "where": "Header",
+          "required": [],
+          "default": "",
+          "opts": {
+            "default": ""
+          }
+        }
+      ],
+      "status": 200,
+      "source": "moaje-auth\\app\\api\\auth.py",
+      "line": 109,
+      "symbol": "validate_bearer_token",
+      "operator": false,
+      "auth": false,
+      "note": "HTTP 200만으로 유효하다고 보지 말고 data.is_valid 확인. POST는 body.access_token, GET은 Authorization: Bearer 사용. expires_at은 Unix 초.",
+      "store": "유효한 user_id 문자열과 expires_at은 로그인 세션 동안 보관. is_valid=false면 인증 상태로 사용하지 않는다.",
+      "resend": "Work의 Path/필수 Body user_id에 이 값을 사용한다. Banking·Asset에는 사용자 ID 대신 JWT만.",
+      "request": null,
+      "response_value": {
+        "success": true,
+        "status": 200,
+        "code": "AUTH-200-004",
+        "message": "성공 안내 문구",
+        "data": {
+          "is_valid": true,
+          "user_id": 123,
+          "expires_at": 1791689400
+        },
+        "error": null,
+        "traceId": "example-trace-id",
+        "timestamp": "2026-10-11T03:00:00Z"
+      },
+      "id": "API-04"
+    },
+    {
+      "group": "Auth",
+      "path": "/api/v1/auth/account-token",
+      "method": "POST",
+      "title": "계좌 토큰 발급",
+      "response": "ApiResponse[CreateAccountTokenResponse]",
+      "body": "CreateAccountTokenRequest",
+      "params": [],
+      "status": 200,
+      "source": "moaje-auth\\app\\api\\auth.py",
+      "line": 136,
+      "symbol": "create_account_token",
+      "operator": false,
+      "auth": true,
+      "note": "user_id와 account_number 필수. transaction_id 선택. 이전 통합 시험에서 타인 user_id 요청이 200인 결함이 확인됐다. 수정 전 일반 앱 기능에 노출하지 않는다. 이 account_token은 Banking 내부 accountId가 아니다.",
+      "store": "계좌 토큰은 계약이 완성되기 전 영구 보관·자동 계좌 연결에 사용하지 않는다. 필요 시 보안 저장소에서 계좌 연결 생명주기에 맞춰 관리하되 만료·폐기 규격은 미정.",
+      "resend": "발급한 account_token은 /account-token/validate 본문에만. Banking 송금의 withdrawalAccountId로 넣지 않는다.",
+      "request": {
+        "user_id": 123,
+        "account_number": "TEST-ACCOUNT-001",
+        "transaction_id": "MOAJE-BNK-456"
+      },
+      "response_value": {
+        "success": true,
+        "status": 200,
+        "code": "AUTH-200-005",
+        "message": "성공 안내 문구",
+        "data": {
+          "account_token": "<ACCOUNT_TOKEN>",
+          "user_id": 123
+        },
+        "error": null,
+        "traceId": "example-trace-id",
+        "timestamp": "2026-10-11T03:00:00Z"
+      },
+      "id": "API-05"
+    },
+    {
+      "group": "Auth",
+      "path": "/api/v1/auth/account-token/validate",
+      "method": "POST",
+      "title": "계좌 토큰 확인",
+      "response": "ApiResponse[ValidateAccountTokenResponse]",
+      "body": "ValidateAccountTokenRequest",
+      "params": [],
+      "status": 200,
+      "source": "moaje-auth\\app\\api\\auth.py",
+      "line": 179,
+      "symbol": "validate_account_token",
+      "operator": false,
+      "auth": true,
+      "note": "account_token 필수. transaction_id 선택. JWT 인증도 필요. data.is_valid·is_active를 함께 확인. 이 API는 Banking 계좌 연결 기능을 대신하지 않는다.",
+      "store": "계좌 토큰은 계약이 완성되기 전 영구 보관·자동 계좌 연결에 사용하지 않는다. 필요 시 보안 저장소에서 계좌 연결 생명주기에 맞춰 관리하되 만료·폐기 규격은 미정.",
+      "resend": "발급한 account_token은 /account-token/validate 본문에만. Banking 송금의 withdrawalAccountId로 넣지 않는다.",
+      "request": {
+        "account_token": "<ACCOUNT_TOKEN>",
+        "transaction_id": "MOAJE-BNK-456"
+      },
+      "response_value": {
+        "success": true,
+        "status": 200,
+        "code": "AUTH-200-006",
+        "message": "성공 안내 문구",
+        "data": {
+          "is_valid": true,
+          "user_id": 123,
+          "is_active": true
+        },
+        "error": null,
+        "traceId": "example-trace-id",
+        "timestamp": "2026-10-11T03:00:00Z"
+      },
+      "id": "API-06"
+    },
+    {
+      "group": "Auth",
+      "path": "/api/v1/auth/refresh",
+      "method": "POST",
+      "title": "토큰 재발급",
+      "response": "ApiResponse[TokenResponse]",
+      "body": "RefreshRequest",
+      "params": [],
+      "status": 200,
+      "source": "moaje-auth\\app\\api\\auth.py",
+      "line": 203,
+      "symbol": "refresh",
+      "operator": false,
+      "auth": false,
+      "note": "refresh_token 최소 32자. 재발급 성공 시 Access·Refresh 둘 다 새 값으로 교체한다. 이전 Refresh는 재사용할 수 없다. 401이면 보관값을 지우고 로그인으로 이동.",
+      "store": "Access는 메모리, Refresh는 앱의 OS 보안 저장소 보관을 권장한다. 기본 Access 30분/Refresh 14일은 서버 설정값이며 고정 계약이 아니다. 실제 Access는 expires_in으로 만료 관리. Refresh 만료시각은 응답에 없으므로 401도 처리한다. 재발급 시 두 값 교체, 로그아웃·계정 변경 시 삭제. PIN은 저장하지 않는다.",
+      "resend": "Access는 보호 API Authorization 헤더, Refresh는 /refresh·/logout 본문에만. Refresh를 일반 API 헤더에 보내지 않는다.",
+      "request": {
+        "refresh_token": "<REFRESH_TOKEN>"
+      },
+      "response_value": {
+        "success": true,
+        "status": 200,
+        "code": "AUTH-200-002",
+        "message": "성공 안내 문구",
+        "data": {
+          "access_token": "<ACCESS_TOKEN>",
+          "refresh_token": "<REFRESH_TOKEN>",
+          "token_type": "bearer",
+          "expires_in": 1800
+        },
+        "error": null,
+        "traceId": "example-trace-id",
+        "timestamp": "2026-10-11T03:00:00Z"
+      },
+      "id": "API-07"
+    },
+    {
+      "group": "Auth",
+      "path": "/api/v1/auth/logout",
+      "method": "POST",
+      "title": "로그아웃",
+      "response": "ApiResponse[MessageResponse]",
+      "body": "LogoutRequest",
+      "params": [],
+      "status": 200,
+      "source": "moaje-auth\\app\\api\\auth.py",
+      "line": 231,
+      "symbol": "logout",
+      "operator": false,
+      "auth": false,
+      "note": "refresh_token 선택, all_devices 기본 false. 정상 로그아웃에는 현재 Refresh를 반드시 전달한다. 새 로그인 없이 Access Token이 즉시 모든 곳에서 폐기된다고 가정하지 않는다.",
+      "store": "로그아웃 후 Access·Refresh·사용자 ID·계좌·커서·집계 캐시를 모두 삭제. 서버 오류 시에도 앱 세션을 비울 수 있으나 서버 세션 종료 성공과는 구분.",
+      "resend": "로그아웃 요청에만 현재 Refresh를 담는다. 반환 message는 재전송하지 않는다.",
+      "request": {
+        "refresh_token": "<REFRESH_TOKEN>",
+        "all_devices": false
+      },
+      "response_value": {
+        "success": true,
+        "status": 200,
+        "code": "AUTH-200-003",
+        "message": "성공 안내 문구",
+        "data": {
+          "message": "화면에 표시할 서버 안내"
+        },
+        "error": null,
+        "traceId": "example-trace-id",
+        "timestamp": "2026-10-11T03:00:00Z"
+      },
+      "id": "API-08"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/calendar/universities",
+      "method": "GET",
+      "title": "학교 목록 조회",
+      "response": "list[UniversityResponse]",
+      "body": null,
+      "params": [],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\calendar.py",
+      "line": 59,
+      "symbol": "list_universities",
+      "operator": false,
+      "auth": true,
+      "request": null,
+      "response_value": [
+        {
+          "id": 1,
+          "name": "예시 값",
+          "short_name": "예시 값",
+          "region": null
+        }
+      ],
+      "note": "id를 학교 선택값으로 사용. 인증 필요. 목록은 앱 실행 세션 동안 캐시하고 재시작 시 갱신할 수 있다.",
+      "store": "본인 user_id는 로그인 세션 동안. 응답은 해당 화면의 메모리 상태로 보관하고 진입·새로고침·관련 데이터 변경 후 재조회. 서버가 강제하는 앱 캐시 TTL은 없다. 로그아웃·사용자 변경 시 반드시 비운다.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용. 응답 id를 /calendar/sync의 university_id로 사용.",
+      "id": "API-18"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/calendar/sync",
+      "method": "POST",
+      "title": "학사 일정 자동 동기화",
+      "response": "CalendarSyncResponse",
+      "body": "CalendarSyncRequest",
+      "params": [],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\calendar.py",
+      "line": 78,
+      "symbol": "sync_calendar",
+      "operator": false,
+      "auth": true,
+      "request": {
+        "user_id": 123,
+        "university_id": 1,
+        "year": 2026,
+        "semester": 2
+      },
+      "response_value": {
+        "user_id": 123,
+        "university_name": "테스트대학교",
+        "year": 2026,
+        "semester": 2,
+        "synced_count": 1,
+        "schedules": [
+          {
+            "id": 1,
+            "user_id": 123,
+            "event_type": "EXAM",
+            "event_name": "중간고사",
+            "start_date": "2026-10-19",
+            "end_date": "2026-10-23",
+            "expected_extra_spend": "50000"
+          }
+        ]
+      },
+      "note": "선택한 학교·연도·학기의 자동 일정을 동기화한다. 사용자 수동 일정은 유지한다. 등록된 학교·학기 없음은 404. 완료 후 일정 목록과 예비비를 갱신한다.",
+      "store": "본인 user_id는 로그인 세션 동안. 응답은 해당 화면의 메모리 상태로 보관하고 진입·새로고침·관련 데이터 변경 후 재조회. 서버가 강제하는 앱 캐시 TTL은 없다. 로그아웃·사용자 변경 시 반드시 비운다.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-19"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/calendar/{user_id}/schedules",
+      "method": "GET",
+      "title": "학사 일정 전체 조회 (자동 + 수동)",
+      "response": "",
+      "body": null,
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "year",
+          "type": "int | None",
+          "where": "Query",
+          "required": [],
+          "default": null,
+          "opts": {
+            "default": null,
+            "ge": 2020,
+            "le": 2030,
+            "description": "해당 연도에 걸치는 일정만"
+          }
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "where": "Query",
+          "required": [],
+          "default": 200,
+          "opts": {
+            "default": 200,
+            "ge": 1,
+            "le": 500
+          }
+        },
+        {
+          "name": "offset",
+          "type": "int",
+          "where": "Query",
+          "required": [],
+          "default": 0,
+          "opts": {
+            "default": 0,
+            "ge": 0
+          }
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\calendar.py",
+      "line": 187,
+      "symbol": "get_all_schedules",
+      "operator": false,
+      "auth": true,
+      "request": null,
+      "response_value": [
+        {
+          "id": 1,
+          "event_type": "EXAM",
+          "event_name": "중간고사",
+          "start_date": "2026-10-19",
+          "end_date": "2026-10-23",
+          "expected_extra_spend": "50000",
+          "is_auto": true
+        }
+      ],
+      "note": "year/limit/offset 조건으로 자동·수동 일정을 함께 조회. 응답에는 user_id 없이 일정 배열을 반환한다.",
+      "store": "본인 user_id는 로그인 세션 동안. 응답은 해당 화면의 메모리 상태로 보관하고 진입·새로고침·관련 데이터 변경 후 재조회. 서버가 강제하는 앱 캐시 TTL은 없다. 로그아웃·사용자 변경 시 반드시 비운다.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-20"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/fds/detect",
+      "method": "POST",
+      "title": "이상거래 탐지",
+      "response": "FdsDetectResponse",
+      "body": "FdsDetectRequest",
+      "params": [],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\fds.py",
+      "line": 49,
+      "symbol": "detect_fraud",
+      "operator": false,
+      "auth": true,
+      "request": {
+        "user_id": 123,
+        "transaction_id": "MOAJE-BNK-456",
+        "amount": "10000",
+        "merchant": "테스트카페",
+        "hour": 12,
+        "occurred_at": "2026-10-11T03:00:00Z"
+      },
+      "response_value": {
+        "user_id": 123,
+        "transaction_id": "MOAJE-BNK-456",
+        "risk_score": "0.1",
+        "risk_level": "LOW",
+        "reason_code": "NORMAL",
+        "is_alerted": false,
+        "message": "화면에 표시할 서버 안내"
+      },
+      "note": "진단용 요청이지 실제 송금 실행 API가 아니다. user_id는 로그인 사용자와 같아야 한다. amount 0 이상, hour 0~23. 호출이 로그·알림을 만들 수 있으므로 조회처럼 반복 호출하지 않는다.",
+      "store": "본인 user_id는 로그인 세션 동안. 응답은 해당 화면의 메모리 상태로 보관하고 진입·새로고침·관련 데이터 변경 후 재조회. 서버가 강제하는 앱 캐시 TTL은 없다. 로그아웃·사용자 변경 시 반드시 비운다.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-21"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/fds/{user_id}/blacklist",
+      "method": "GET",
+      "title": "블랙리스트 조회",
+      "response": "",
+      "body": null,
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\fds.py",
+      "line": 63,
+      "symbol": "check_blacklist",
+      "operator": false,
+      "auth": true,
+      "request": null,
+      "response_value": {
+        "user_id": 123,
+        "is_blocked": false,
+        "message": "정상 사용자입니다."
+      },
+      "note": "본인 차단 상태 조회. 다른 사용자 경로는 403. 상태만 표시하고 앱이 서버의 송금 허용 정책을 대신 결정하지 않는다.",
+      "store": "본인 user_id는 로그인 세션 동안. 응답은 해당 화면의 메모리 상태로 보관하고 진입·새로고침·관련 데이터 변경 후 재조회. 서버가 강제하는 앱 캐시 TTL은 없다. 로그아웃·사용자 변경 시 반드시 비운다.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-22"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/fds/blacklist",
+      "method": "POST",
+      "title": "블랙리스트 등록 (내부 전용)",
+      "response": "BlacklistResponse",
+      "body": "BlacklistCreateRequest",
+      "params": [],
+      "status": 201,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\fds.py",
+      "line": 74,
+      "symbol": "register_blacklist",
+      "operator": true,
+      "auth": true,
+      "request": {
+        "user_id": 123,
+        "reason": "MANUAL",
+        "description": "운영자가 확인한 테스트 사유"
+      },
+      "response_value": {
+        "id": 1,
+        "user_id": 123,
+        "reason": "MANUAL",
+        "description": "운영자가 확인한 테스트 사유",
+        "is_active": true,
+        "registered_at": "2026-10-11T03:00:00",
+        "released_at": null
+      },
+      "note": "운영 전용. 일반 앱에 버튼·X-Internal-Token을 넣지 않는다. API Gateway를 통한 운영 호출에는 JWT와 운영 토큰이 모두 필요.",
+      "store": "일반 앱은 호출·보관하지 않는다. 운영 토큰은 서버/관리자 전용이며 앱 번들·브라우저 저장소에 넣지 않는다.",
+      "resend": "운영 도구에서만 JWT와 X-Internal-Token 전달. 일반 앱 전달 금지.",
+      "id": "API-23"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/fds/{user_id}/blacklist",
+      "method": "DELETE",
+      "title": "블랙리스트 해제 (내부 전용)",
+      "response": "",
+      "body": null,
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\fds.py",
+      "line": 82,
+      "symbol": "release_blacklist",
+      "operator": true,
+      "auth": true,
+      "request": null,
+      "response_value": {
+        "user_id": 123,
+        "message": "블랙리스트가 해제되었습니다."
+      },
+      "note": "운영 전용. 없음은 404. 일반 앱 호출 금지.",
+      "store": "일반 앱은 호출·보관하지 않는다. 운영 토큰은 서버/관리자 전용이며 앱 번들·브라우저 저장소에 넣지 않는다.",
+      "resend": "운영 도구에서만 JWT와 X-Internal-Token 전달. 일반 앱 전달 금지.",
+      "id": "API-24"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/fds/{user_id}/logs",
+      "method": "GET",
+      "title": "FDS 탐지 로그 조회",
+      "response": "",
+      "body": null,
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "where": "Query",
+          "required": [],
+          "default": 20,
+          "opts": {
+            "default": 20,
+            "ge": 1,
+            "le": 100,
+            "description": "최대 100건"
+          }
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\fds.py",
+      "line": 91,
+      "symbol": "get_fds_logs",
+      "operator": false,
+      "auth": true,
+      "request": null,
+      "response_value": [
+        {
+          "id": 1,
+          "transaction_id": "MOAJE-BNK-456",
+          "amount": "10000",
+          "risk_score": "0.1",
+          "risk_level": "LOW",
+          "reason_code": "NORMAL",
+          "is_alerted": false,
+          "created_at": "2026-10-11 03:00:00"
+        }
+      ],
+      "note": "limit 기본 20, 최대 100. 최신 탐지 내역 배열. 커서나 offset 없음. transaction_id는 Work가 기록한 거래 식별 문자열이다.",
+      "store": "본인 user_id는 로그인 세션 동안. 응답은 해당 화면의 메모리 상태로 보관하고 진입·새로고침·관련 데이터 변경 후 재조회. 서버가 강제하는 앱 캐시 TTL은 없다. 로그아웃·사용자 변경 시 반드시 비운다.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-25"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/fds/{user_id}/alerts",
+      "method": "GET",
+      "title": "이상거래 알림 조회",
+      "response": "",
+      "body": null,
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "where": "Query",
+          "required": [],
+          "default": 20,
+          "opts": {
+            "default": 20,
+            "ge": 1,
+            "le": 100,
+            "description": "최대 100건"
+          }
+        },
+        {
+          "name": "unread",
+          "type": "bool",
+          "where": "Query",
+          "required": false,
+          "default": false,
+          "opts": {}
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\fds.py",
+      "line": 133,
+      "symbol": "get_fds_alerts",
+      "operator": false,
+      "auth": true,
+      "request": null,
+      "response_value": {
+        "user_id": 123,
+        "total": 1,
+        "unread": 1,
+        "returned": 1,
+        "alerts": [
+          {
+            "id": 1,
+            "transaction_id": "MOAJE-BNK-456",
+            "amount": "10000",
+            "merchant": "테스트카페",
+            "risk_level": "HIGH",
+            "reason_code": "예시 탐지 사유",
+            "message": "알림 문구",
+            "is_confirmed": false,
+            "confirmed_at": null,
+            "created_at": "2026-10-11 03:00:00"
+          }
+        ]
+      },
+      "note": "limit 기본 20/최대 100. unread=true면 미확인만. total·unread는 전체 건수, returned는 이번 응답 건수이므로 알림 배지에는 unread 사용.",
+      "store": "본인 user_id는 로그인 세션 동안. 응답은 해당 화면의 메모리 상태로 보관하고 진입·새로고침·관련 데이터 변경 후 재조회. 서버가 강제하는 앱 캐시 TTL은 없다. 로그아웃·사용자 변경 시 반드시 비운다.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용. 알림의 id를 confirm Path alert_id로 사용. transaction_id와 혼동하지 않는다.",
+      "id": "API-26"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/fds/{user_id}/alerts/{alert_id}/confirm",
+      "method": "PATCH",
+      "title": "이상거래 알림 확인 처리",
+      "response": "",
+      "body": null,
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "alert_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\fds.py",
+      "line": 185,
+      "symbol": "confirm_fds_alert",
+      "operator": false,
+      "auth": true,
+      "request": null,
+      "response_value": {
+        "alert_id": 1,
+        "is_confirmed": true,
+        "confirmed_at": "2026-10-11 03:00:00",
+        "message": "알림이 확인 처리됐습니다."
+      },
+      "note": "Path alert_id는 알림 응답의 id. 본문 없음. 타인의 알림 또는 없음은 404. 확인 성공 후 알림 목록·배지 갱신.",
+      "store": "본인 user_id는 로그인 세션 동안. 응답은 해당 화면의 메모리 상태로 보관하고 진입·새로고침·관련 데이터 변경 후 재조회. 서버가 강제하는 앱 캐시 TTL은 없다. 로그아웃·사용자 변경 시 반드시 비운다.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용. 알림의 id를 confirm Path alert_id로 사용. transaction_id와 혼동하지 않는다.",
+      "id": "API-27"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/fds/{user_id}/safety-score",
+      "method": "GET",
+      "title": "소비 안전도 점수 조회",
+      "response": "",
+      "body": null,
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\fds.py",
+      "line": 235,
+      "symbol": "get_safety_score",
+      "operator": false,
+      "auth": true,
+      "request": null,
+      "response_value": {
+        "user_id": 123,
+        "safety_score": 100,
+        "grade": "A",
+        "emoji": "안전도 아이콘",
+        "total_tx": 0,
+        "high_count": 0,
+        "medium_count": 0,
+        "period_days": 30,
+        "message": "소비 안전도 안내"
+      },
+      "note": "최근 30일 안전도 참고 지표. safety_score·grade·message를 함께 표시한다. 거래가 없는 사용자의 점수도 실제 안전성을 증명하지 않는다.",
+      "store": "본인 user_id는 로그인 세션 동안. 응답은 해당 화면의 메모리 상태로 보관하고 진입·새로고침·관련 데이터 변경 후 재조회. 서버가 강제하는 앱 캐시 TTL은 없다. 로그아웃·사용자 변경 시 반드시 비운다.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-28"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/metrics/retention",
+      "method": "GET",
+      "title": "재방문 검증 지표",
+      "response": "MetricsResponse",
+      "body": null,
+      "params": [
+        {
+          "name": "period_days",
+          "type": "int",
+          "where": "Query",
+          "required": [],
+          "default": 30,
+          "opts": {
+            "default": 30,
+            "ge": 1,
+            "le": 365,
+            "description": "집계 기간"
+          }
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\metrics.py",
+      "line": 46,
+      "symbol": "get_retention_metrics",
+      "operator": true,
+      "auth": true,
+      "request": null,
+      "response_value": {
+        "period_days": 30,
+        "total_users": 1,
+        "onboarding_started": 1,
+        "onboarding_completed": 1,
+        "completion_rate": "0.8",
+        "question_dropoff": [
+          {
+            "question_no": 1,
+            "answered": 1,
+            "dropoff_rate": "0.2"
+          }
+        ],
+        "simulator_users": 1,
+        "simulator_calls": 1,
+        "simulator_reuse_rate": "0.5",
+        "recap_users": 1,
+        "recap_views": 1,
+        "recap_repeat_rate": "0.5",
+        "is_reliable": false,
+        "note": "분석에 필요한 데이터가 부족합니다.",
+        "warnings": [
+          "예시 항목"
+        ]
+      },
+      "note": "전체 사용자 집계의 운영 전용 API. period_days 기본 30, 최대 365. is_reliable=false면 표본 부족. 일반 앱 호출 금지.",
+      "store": "일반 앱은 호출·보관하지 않는다. 운영 토큰은 서버/관리자 전용이며 앱 번들·브라우저 저장소에 넣지 않는다.",
+      "resend": "운영 도구에서만 JWT와 X-Internal-Token 전달. 일반 앱 전달 금지.",
+      "id": "API-29"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/onboarding/questions",
+      "method": "GET",
+      "title": "온보딩 문항 목록",
+      "response": "list[QuestionResponse]",
+      "body": null,
+      "params": [],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\onboarding.py",
+      "line": 41,
+      "symbol": "list_questions",
+      "operator": false,
+      "auth": true,
+      "request": null,
+      "response_value": [
+        {
+          "question_no": 1,
+          "phase": "출발선 확인",
+          "text": "문항의 실제 문구",
+          "purpose": "문항 의도",
+          "free_text": false,
+          "options": [
+            {
+              "code": "UNKNOWN",
+              "label": "아직 모르겠어요"
+            }
+          ]
+        }
+      ],
+      "note": "선택지 code를 서버 응답에서 사용한다. 문항·선택지 라벨을 코드로 하드코딩하지 않는다. 자유 서술 여부는 free_text로 판단한다.",
+      "store": "문항 목록은 앱 실행 세션, 저장 전 답변은 제출 완료까지. 저장된 답변·진행률은 서버가 보관하므로 앱 재시작 시 재조회. 다음 화면에는 next_question_no 또는 질문 코드만 전달.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-30"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/onboarding/{user_id}/answers",
+      "method": "POST",
+      "title": "답변 저장 (여러 문항)",
+      "response": "OnboardingProgress",
+      "body": "AnswerBulkSubmit",
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "사용자 ID"
+          }
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\onboarding.py",
+      "line": 65,
+      "symbol": "submit_answers",
+      "operator": false,
+      "auth": true,
+      "request": {
+        "user_id": 123,
+        "answers": [
+          {
+            "question_no": 1,
+            "answer_code": "UNKNOWN",
+            "answer_text": null
+          }
+        ]
+      },
+      "response_value": {
+        "user_id": 123,
+        "answered_count": 1,
+        "total_questions": 10,
+        "is_completed": false,
+        "remaining": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "unknown_answers": [
+          1
+        ],
+        "next_question_no": 2
+      },
+      "note": "Path user_id가 실제 처리 대상이다. Body user_id도 스키마상 필수이므로 동일 값으로 보낸다. answers는 1개 이상. question_no 1~10. 같은 문항 재제출은 답변 갱신이다.",
+      "store": "문항 목록은 앱 실행 세션, 저장 전 답변은 제출 완료까지. 저장된 답변·진행률은 서버가 보관하므로 앱 재시작 시 재조회. 다음 화면에는 next_question_no 또는 질문 코드만 전달.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-31"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/onboarding/{user_id}/answers/{question_no}",
+      "method": "POST",
+      "title": "답변 저장 (문항 하나)",
+      "response": "OnboardingProgress",
+      "body": "AnswerSubmit",
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "사용자 ID"
+          }
+        },
+        {
+          "name": "question_no",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {
+            "ge": 1,
+            "le": "TOTAL_QUESTIONS"
+          }
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\onboarding.py",
+      "line": 97,
+      "symbol": "submit_single_answer",
+      "operator": false,
+      "auth": true,
+      "request": {
+        "question_no": 1,
+        "answer_code": "UNKNOWN",
+        "answer_text": null
+      },
+      "response_value": {
+        "user_id": 123,
+        "answered_count": 1,
+        "total_questions": 10,
+        "is_completed": false,
+        "remaining": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "unknown_answers": [
+          1
+        ],
+        "next_question_no": 2
+      },
+      "note": "Body의 question_no도 필수다. Path question_no와 같게 보낸다. 처리 대상 문항은 Path에서 정한다. 모르면 answer_code=UNKNOWN. answer_text는 선택.",
+      "store": "문항 목록은 앱 실행 세션, 저장 전 답변은 제출 완료까지. 저장된 답변·진행률은 서버가 보관하므로 앱 재시작 시 재조회. 다음 화면에는 next_question_no 또는 질문 코드만 전달.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-32"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/onboarding/{user_id}/answers",
+      "method": "GET",
+      "title": "내 답변 목록",
+      "response": "list[AnswerResponse]",
+      "body": null,
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "사용자 ID"
+          }
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\onboarding.py",
+      "line": 130,
+      "symbol": "get_answers",
+      "operator": false,
+      "auth": true,
+      "request": null,
+      "response_value": [
+        {
+          "question_no": 1,
+          "answer_code": "UNKNOWN",
+          "answer_label": "예시 값",
+          "answer_text": null,
+          "answered_at": "2026-10-11T03:00:00"
+        }
+      ],
+      "note": "재접속 시 서버에 저장된 답변으로 입력 화면을 복원한다. 선택지 표시에는 answer_label을 활용한다.",
+      "store": "문항 목록은 앱 실행 세션, 저장 전 답변은 제출 완료까지. 저장된 답변·진행률은 서버가 보관하므로 앱 재시작 시 재조회. 다음 화면에는 next_question_no 또는 질문 코드만 전달.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-33"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/onboarding/{user_id}/progress",
+      "method": "GET",
+      "title": "온보딩 진행 상태",
+      "response": "OnboardingProgress",
+      "body": null,
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "사용자 ID"
+          }
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\onboarding.py",
+      "line": 153,
+      "symbol": "get_progress",
+      "operator": false,
+      "auth": true,
+      "request": null,
+      "response_value": {
+        "user_id": 123,
+        "answered_count": 1,
+        "total_questions": 10,
+        "is_completed": false,
+        "remaining": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "unknown_answers": [
+          1
+        ],
+        "next_question_no": 2
+      },
+      "note": "remaining·next_question_no로 다음 문항을 선택한다. is_completed가 완료 여부다. UNKNOWN 답변은 unknown_answers로 구분된다.",
+      "store": "문항 목록은 앱 실행 세션, 저장 전 답변은 제출 완료까지. 저장된 답변·진행률은 서버가 보관하므로 앱 재시작 시 재조회. 다음 화면에는 next_question_no 또는 질문 코드만 전달.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-34"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/onboarding/{user_id}/profile",
+      "method": "GET",
+      "title": "Future Profile (미래 카드)",
+      "response": "FutureProfileResponse",
+      "body": null,
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "사용자 ID"
+          }
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\onboarding.py",
+      "line": 168,
+      "symbol": "get_future_profile",
+      "operator": false,
+      "auth": true,
+      "request": null,
+      "response_value": {
+        "user_id": 123,
+        "status_code": null,
+        "housing_type": null,
+        "work_env": null,
+        "value_priority": null,
+        "must_keep_category": null,
+        "money_concern": null,
+        "success_image": null,
+        "card_title": null,
+        "card_summary": null,
+        "answered_count": 1,
+        "is_completed": false,
+        "completed_at": null
+      },
+      "note": "답변이 아직 없으면 404. 프로필 값이 null이면 아직 정해지지 않은 상태로 표시한다.",
+      "store": "문항 목록은 앱 실행 세션, 저장 전 답변은 제출 완료까지. 저장된 답변·진행률은 서버가 보관하므로 앱 재시작 시 재조회. 다음 화면에는 next_question_no 또는 질문 코드만 전달.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-35"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/readiness/{user_id}",
+      "method": "POST",
+      "title": "사회인 준비도 조회",
+      "response": "ReadinessResponse",
+      "body": "ReadinessRequest",
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "사용자 ID"
+          }
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\readiness.py",
+      "line": 51,
+      "symbol": "get_readiness",
+      "operator": false,
+      "auth": true,
+      "request": {
+        "monthly_income": "2500000",
+        "monthly_housing": "500000",
+        "monthly_living": "500000",
+        "monthly_leisure": "200000",
+        "deposit": "10000000",
+        "move_in_cost": "1000000"
+      },
+      "response_value": {
+        "user_id": 123,
+        "percent": 20,
+        "level": 1,
+        "level_label": "참고 단계",
+        "items": [
+          {
+            "key": "예시 값",
+            "label": "아직 모르겠어요",
+            "weight": 1,
+            "score": null,
+            "detail": "예시 값"
+          }
+        ],
+        "evaluated": [
+          "예시 항목"
+        ],
+        "excluded": [
+          "예시 항목"
+        ],
+        "asset_source": "ASSET_SERVICE",
+        "message": "화면에 표시할 서버 안내",
+        "disclaimer": "앱 내부 참고 지표입니다."
+      },
+      "note": "시뮬레이터에 넣었던 조건과 같은 값으로 계산한다. excluded 항목을 0점으로 표시하지 않는다. 준비도는 신용점수나 실제 금융 심사 결과가 아니다.",
+      "store": "시뮬레이터 입력 조건은 해당 작업 세션 동안 유지. adjust·준비도에 동일 조건 재사용. 계산 결과는 조건·잔액·답변 변경 때 폐기하고 재계산. 결과를 실제 계좌 잔액으로 저장하지 않는다.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용. 시뮬레이터 결과 전체가 아니라 monthly_income 등 원래 입력만 재사용.",
+      "id": "API-36"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/recap/{user_id}/months",
+      "method": "GET",
+      "title": "Recap 이 있는 월 목록",
+      "response": "RecapMonthsResponse",
+      "body": null,
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "사용자 ID"
+          }
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "where": "Query",
+          "required": [],
+          "default": 12,
+          "opts": {
+            "default": 12,
+            "ge": 1,
+            "le": 36
+          }
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\recap.py",
+      "line": 39,
+      "symbol": "list_months",
+      "operator": false,
+      "auth": true,
+      "request": null,
+      "response_value": {
+        "user_id": 123,
+        "months": [
+          "2026-09"
+        ]
+      },
+      "note": "서버가 반환한 months로 선택 목록을 만든다. limit 기본 12, 최대 36.",
+      "store": "user_id+year_month별 화면 캐시. 동일 월의 더 큰 revision 응답으로 통째로 교체. 재방문 시 다시 확인하며 0원과 집계 미도착을 구분.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-37"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/recap/{user_id}/{year_month}",
+      "method": "GET",
+      "title": "월별 Money Recap",
+      "response": "RecapResponse",
+      "body": null,
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "사용자 ID"
+          }
+        },
+        {
+          "name": "year_month",
+          "type": "str",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "조회할 달 (예: 2026-09)"
+          }
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\recap.py",
+      "line": 60,
+      "symbol": "get_recap",
+      "operator": false,
+      "auth": true,
+      "request": null,
+      "response_value": {
+        "user_id": 123,
+        "year_month": "2026-09",
+        "revision": 1,
+        "total_income": "200000",
+        "total_expense": "100000",
+        "total_transfer": "10000",
+        "net_saving": "100000",
+        "categories": [
+          {
+            "code": "UNKNOWN",
+            "label": "아직 모르겠어요",
+            "amount": "10000",
+            "share": "0.5"
+          }
+        ],
+        "top_category": null,
+        "nickname": null,
+        "nickname_reason": null,
+        "coverage": {
+          "total_tx": 1,
+          "classified_tx": 1,
+          "unclassified_share": "0",
+          "is_reliable": false,
+          "note": "분석에 필요한 데이터가 부족합니다."
+        },
+        "insights": [
+          "예시 항목"
+        ]
+      },
+      "note": "year_month=yyyy-MM Path. 집계 미도착은 404이며 지출이 0이라는 뜻이 아니다. coverage.is_reliable=false면 별명·분석을 확정적으로 표시하지 않는다. 늦은 집계는 revision 증가로 교체.",
+      "store": "user_id+year_month별 화면 캐시. 동일 월의 더 큰 revision 응답으로 통째로 교체. 재방문 시 다시 확인하며 0원과 집계 미도착을 구분.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-38"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/simulator/baselines",
+      "method": "GET",
+      "title": "비용 기준값 목록",
+      "response": "list[BaselineInfo]",
+      "body": null,
+      "params": [],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\simulator.py",
+      "line": 101,
+      "symbol": "list_baselines",
+      "operator": false,
+      "auth": true,
+      "request": null,
+      "response_value": [
+        {
+          "key": "예시 값",
+          "label": "아직 모르겠어요",
+          "amount": "10000",
+          "kind": "ASSUMPTION",
+          "source": "예시 값",
+          "as_of": "2026-10",
+          "scope": "예시 적용 범위",
+          "url": ""
+        }
+      ],
+      "note": "kind=ASSUMPTION은 공표 통계가 아닌 앱 가정값이다. source·as_of·scope를 함께 표시한다.",
+      "store": "본인 user_id는 로그인 세션 동안. 응답은 해당 화면의 메모리 상태로 보관하고 진입·새로고침·관련 데이터 변경 후 재조회. 서버가 강제하는 앱 캐시 TTL은 없다. 로그아웃·사용자 변경 시 반드시 비운다.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-39"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/simulator/{user_id}/simulate",
+      "method": "POST",
+      "title": "미래 자금 시뮬레이션",
+      "response": "SimulateResponse",
+      "body": "SimulateRequest",
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "사용자 ID"
+          }
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\simulator.py",
+      "line": 116,
+      "symbol": "simulate",
+      "operator": false,
+      "auth": true,
+      "request": {
+        "monthly_income": "2500000",
+        "monthly_housing": "500000",
+        "monthly_living": "500000",
+        "monthly_leisure": "200000",
+        "deposit": "10000000",
+        "move_in_cost": "1000000"
+      },
+      "response_value": {
+        "user_id": 123,
+        "target": {
+          "deposit": "10000000",
+          "move_in_cost": "1000000",
+          "emergency_fund": "3600000",
+          "total": "14600000"
+        },
+        "cashflow": {
+          "income": "2500000",
+          "housing": "500000",
+          "living": "500000",
+          "leisure": "200000",
+          "expense": "1200000",
+          "savable": "1300000"
+        },
+        "current_asset": "1000000",
+        "gap": "13600000",
+        "months_to_goal": 11,
+        "progress_rate": "0.0685",
+        "asset_source": "ASSET_SERVICE",
+        "assumed_keys": [
+          "emergency_months"
+        ],
+        "baselines": [
+          {
+            "key": "예시 값",
+            "label": "아직 모르겠어요",
+            "amount": "10000",
+            "kind": "ASSUMPTION",
+            "source": "예시 값",
+            "as_of": "2026-10",
+            "scope": "예시 적용 범위",
+            "url": ""
+          }
+        ],
+        "advice": [
+          "예시 항목"
+        ]
+      },
+      "note": "본문은 {}도 가능. 생략값은 온보딩·기준값으로 계산한다. current_asset 생략 시 Work가 Asset RPC를 호출한다. 명시한 0원은 직접 입력한 정상값이다. asset_source=NOT_LINKED와 UNAVAILABLE는 각각 미연동과 조회 실패로 구분해 안내한다. months_to_goal=null은 저축 가능액으로 목표 기간을 산출할 수 없다는 뜻이다.",
+      "store": "시뮬레이터 입력 조건은 해당 작업 세션 동안 유지. adjust·준비도에 동일 조건 재사용. 계산 결과는 조건·잔액·답변 변경 때 폐기하고 재계산. 결과를 실제 계좌 잔액으로 저장하지 않는다.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용. 시뮬레이터 결과 전체가 아니라 monthly_income 등 원래 입력만 재사용.",
+      "id": "API-40"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/simulator/{user_id}/adjust",
+      "method": "POST",
+      "title": "조건부 시뮬레이션",
+      "response": "AdjustResponse",
+      "body": "AdjustRequest",
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "사용자 ID"
+          }
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\simulator.py",
+      "line": 166,
+      "symbol": "adjust",
+      "operator": false,
+      "auth": true,
+      "request": {
+        "monthly_income": "2500000",
+        "monthly_housing": "500000",
+        "monthly_living": "500000",
+        "monthly_leisure": "200000",
+        "deposit": "10000000",
+        "move_in_cost": "1000000",
+        "monthly_delta": "-100000"
+      },
+      "response_value": {
+        "user_id": 123,
+        "monthly_delta": "-100000",
+        "base_monthly_savable": "1300000",
+        "adjusted_monthly_savable": "1400000",
+        "base_months_to_goal": 11,
+        "adjusted_months_to_goal": 10,
+        "months_saved": 1,
+        "message": "화면에 표시할 서버 안내"
+      },
+      "note": "monthly_delta 필수. 음수는 지출 절감, 양수는 지출 증가. 나머지는 원래 시뮬레이션 입력을 유지해 보낸다. months_saved=null도 처리한다.",
+      "store": "시뮬레이터 입력 조건은 해당 작업 세션 동안 유지. adjust·준비도에 동일 조건 재사용. 계산 결과는 조건·잔액·답변 변경 때 폐기하고 재계산. 결과를 실제 계좌 잔액으로 저장하지 않는다.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용. 시뮬레이터 결과 전체가 아니라 monthly_income 등 원래 입력만 재사용.",
+      "id": "API-41"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/spending/{user_id}/event-buffer",
+      "method": "GET",
+      "title": "학사 이벤트 버퍼 조회",
+      "response": "",
+      "body": null,
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\spending.py",
+      "line": 38,
+      "symbol": "get_event_buffer",
+      "operator": false,
+      "auth": true,
+      "request": null,
+      "response_value": {
+        "user_id": 123,
+        "event_buffer": "50000"
+      },
+      "note": "event_buffer는 문자열 금액이다. 사용자가 수정한 일정에 따라 달라질 수 있으므로 일정 변경 후 다시 조회한다.",
+      "store": "본인 user_id는 로그인 세션 동안. 응답은 해당 화면의 메모리 상태로 보관하고 진입·새로고침·관련 데이터 변경 후 재조회. 서버가 강제하는 앱 캐시 TTL은 없다. 로그아웃·사용자 변경 시 반드시 비운다.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-42"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/spending/{user_id}/profile",
+      "method": "GET",
+      "title": "AI 소비 프로필 조회",
+      "response": "SpendingProfileResponse",
+      "body": null,
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\spending.py",
+      "line": 51,
+      "symbol": "get_spending_profile",
+      "operator": false,
+      "auth": true,
+      "request": null,
+      "response_value": {
+        "user_id": 123,
+        "avg_daily_amount": "10000",
+        "peak_spend_hour": 1,
+        "top_category": "예시 값",
+        "risk_score_baseline": "0.1",
+        "last_analyzed_at": "2026-10-11T03:00:00"
+      },
+      "note": "이전 통합 시험에서 월 집계 전 신규 사용자 조회가 500이었다. 정상 응답 형태만으로 모든 사용자에게 사용 가능하다고 판단하지 않는다.",
+      "store": "본인 user_id는 로그인 세션 동안. 응답은 해당 화면의 메모리 상태로 보관하고 진입·새로고침·관련 데이터 변경 후 재조회. 서버가 강제하는 앱 캐시 TTL은 없다. 로그아웃·사용자 변경 시 반드시 비운다.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-43"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/spending/schedule",
+      "method": "POST",
+      "title": "학사 일정 등록",
+      "response": "AcademicScheduleResponse",
+      "body": "AcademicScheduleCreate",
+      "params": [],
+      "status": 201,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\spending.py",
+      "line": 72,
+      "symbol": "create_academic_schedule",
+      "operator": false,
+      "auth": true,
+      "request": {
+        "user_id": 123,
+        "event_type": "EXAM",
+        "event_name": "중간고사",
+        "start_date": "2026-10-19",
+        "end_date": "2026-10-23",
+        "expected_extra_spend": "50000"
+      },
+      "response_value": {
+        "id": 1,
+        "user_id": 123,
+        "event_type": "EXAM",
+        "event_name": "중간고사",
+        "start_date": "2026-10-19",
+        "end_date": "2026-10-23",
+        "expected_extra_spend": "50000"
+      },
+      "note": "Body user_id=로그인 사용자. event_type은 Enum 목록 사용. 등록 후 일정 목록·예비비를 다시 조회한다. 네트워크 실패 시 등록 여부 조회 후 재시도하며 자동 POST 재전송하지 않는다.",
+      "store": "본인 user_id는 로그인 세션 동안. 응답은 해당 화면의 메모리 상태로 보관하고 진입·새로고침·관련 데이터 변경 후 재조회. 서버가 강제하는 앱 캐시 TTL은 없다. 로그아웃·사용자 변경 시 반드시 비운다.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-44"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/spending/{user_id}/schedules",
+      "method": "GET",
+      "title": "학사 일정 목록",
+      "response": "list[AcademicScheduleResponse]",
+      "body": null,
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "year",
+          "type": "int | None",
+          "where": "Query",
+          "required": [],
+          "default": null,
+          "opts": {
+            "default": null,
+            "ge": 2020,
+            "le": 2030,
+            "description": "해당 연도에 걸치는 일정만"
+          }
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "where": "Query",
+          "required": [],
+          "default": 200,
+          "opts": {
+            "default": 200,
+            "ge": 1,
+            "le": 500
+          }
+        },
+        {
+          "name": "offset",
+          "type": "int",
+          "where": "Query",
+          "required": [],
+          "default": 0,
+          "opts": {
+            "default": 0,
+            "ge": 0
+          }
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\spending.py",
+      "line": 118,
+      "symbol": "list_academic_schedules",
+      "operator": false,
+      "auth": true,
+      "request": null,
+      "response_value": [
+        {
+          "id": 1,
+          "user_id": 123,
+          "event_type": "EXAM",
+          "event_name": "중간고사",
+          "start_date": "2026-10-19",
+          "end_date": "2026-10-23",
+          "expected_extra_spend": "50000"
+        }
+      ],
+      "note": "year 선택, limit 기본 200/최대 500, offset 기본 0. 다음 페이지는 offset += 실제 받은 길이. 서버 응답은 배열이며 hasNext 필드는 없다.",
+      "store": "본인 user_id는 로그인 세션 동안. 응답은 해당 화면의 메모리 상태로 보관하고 진입·새로고침·관련 데이터 변경 후 재조회. 서버가 강제하는 앱 캐시 TTL은 없다. 로그아웃·사용자 변경 시 반드시 비운다.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-45"
+    },
+    {
+      "group": "Work",
+      "path": "/api/v1/work/spending/{user_id}/report",
+      "method": "GET",
+      "title": "학기 소비 리포트 카드",
+      "response": "SemesterReportResponse",
+      "body": null,
+      "params": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "where": "Path",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "사용자 ID"
+          }
+        },
+        {
+          "name": "year",
+          "type": "int",
+          "where": "Query",
+          "required": [],
+          "default": 2026,
+          "opts": {
+            "default": 2026,
+            "ge": 2020,
+            "le": 2030,
+            "description": "연도"
+          }
+        },
+        {
+          "name": "semester",
+          "type": "int",
+          "where": "Query",
+          "required": [],
+          "default": 1,
+          "opts": {
+            "default": 1,
+            "ge": 1,
+            "le": 2,
+            "description": "학기 (1 or 2)"
+          }
+        }
+      ],
+      "status": 200,
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\spending.py",
+      "line": 147,
+      "symbol": "get_semester_report",
+      "operator": false,
+      "auth": true,
+      "request": null,
+      "response_value": {
+        "user_id": 123,
+        "year": 2026,
+        "semester": 2,
+        "period_label": "예시 값",
+        "period_start": "2026-09-01",
+        "period_end": "2026-12-31",
+        "spending": {
+          "total_tx_count": 1,
+          "avg_daily_limit": "10000",
+          "peak_spend_date": "2026-09-15",
+          "peak_spend_amount": "20000",
+          "lowest_spend_date": "2026-09-01",
+          "lowest_spend_amount": "5000",
+          "peak_spend_hour": 1,
+          "top_category": "예시 값",
+          "total_log_days": 1,
+          "daily_limit_compliance_rate": "0.8",
+          "daily_limit_cv": null
+        },
+        "fds": {
+          "total_detected": 1,
+          "high_count": 1,
+          "medium_count": 1,
+          "safety_score": 1,
+          "safety_grade": "예시 값",
+          "top_reason": "예시 값"
+        },
+        "events": [
+          {
+            "event_type": "EXAM",
+            "event_name": "중간고사",
+            "start_date": "2026-10-19",
+            "end_date": "2026-10-23",
+            "period_days": 30,
+            "avg_daily_spend": "10000",
+            "total_spend": "50000",
+            "vs_normal_ratio": "1.0"
+          }
+        ],
+        "score_breakdown": {
+          "safety_score": 1,
+          "daily_limit_score": 1,
+          "event_score": 1,
+          "regularity_score": 1,
+          "total": 1
+        },
+        "overall_grade": "예시 값",
+        "overall_score": 1,
+        "summary_message": "예시 값",
+        "badges": [
+          "예시 항목"
+        ]
+      },
+      "note": "year 기본 2026, semester 기본 1. 앱에서 조회 연도·학기를 명시한다. 점수·배지·집계는 표시용이지 금융 승인값이 아니다.",
+      "store": "본인 user_id는 로그인 세션 동안. 응답은 해당 화면의 메모리 상태로 보관하고 진입·새로고침·관련 데이터 변경 후 재조회. 서버가 강제하는 앱 캐시 TTL은 없다. 로그아웃·사용자 변경 시 반드시 비운다.",
+      "resend": "경로/본문에 선언된 user_id는 인증 사용자와 같은 값. 응답 전체는 재전송하지 않고 다음 요청 스키마에 있는 필드만 사용.",
+      "id": "API-46"
+    },
+    {
+      "group": "Banking",
+      "method": "POST",
+      "path": "/api/v1/banking/accounts",
+      "title": "Mock 계좌 개설",
+      "request": {
+        "ci": "TEST-CI-001",
+        "userName": "테스트학생",
+        "phoneNumber": "01000000000",
+        "bankCode": "001",
+        "productName": "모아제 테스트 통장",
+        "initialBalance": 100000,
+        "bankName": "테스트 은행"
+      },
+      "response_value": {
+        "accountId": "123",
+        "userId": "123",
+        "bankCode": "001",
+        "productName": "모아제 테스트 통장",
+        "balance": 100000,
+        "status": "ACTIVE",
+        "createdAt": "2026-10-11T03:00:00Z",
+        "canceledAt": null,
+        "bankName": "테스트 은행"
+      },
+      "note": "모든 요청 필드는 필수. initialBalance는 0 이상. userId는 구버전 호환용 선택 필드이며 보내지 않는다. 실제 소유자는 JWT로 결정된다. CI·이름·휴대폰은 현재 Auth 응답에서 얻을 수 없다. 실명확인된 CI 발급 기능으로 오해하지 말고 개발용 합성 값으로만 시연한다. 요청 자동 재시도 금지: 이 API에는 송금처럼 멱등성 보장이 없다. 실제 은행 연결 API가 아니다.",
+      "store": "accountId는 계좌 선택 상태로 보관할 수 있다. 계좌 연결 해제·로그아웃 때 삭제. balance는 화면을 떠나거나 새로고침할 때 갱신한다. CI·PIN·휴대폰은 영구 저장하지 않는다.",
+      "resend": "accountId를 Asset 경로 및 송금 withdrawalAccountId에 사용. 개설 응답에는 실제 계좌번호가 없으므로 수취계좌번호로 사용하지 않는다.",
+      "source": "moaje-banking/src/main/kotlin/com/moaje/banking/account/web/AccountController.kt",
+      "status": 201,
+      "params": [],
+      "operator": false,
+      "auth": true,
+      "id": "API-09"
+    },
+    {
+      "group": "Banking",
+      "method": "POST",
+      "path": "/api/v1/banking/transfers",
+      "title": "송금 요청·동일 요청 결과 재확인",
+      "request": {
+        "withdrawalAccountId": "123",
+        "depositBankCode": "001",
+        "depositAccountNumber": "TEST-RECIPIENT-001",
+        "amount": 10000,
+        "currency": "KRW"
+      },
+      "response_value": {
+        "transferId": "456",
+        "publicTransferId": "MOAJE-BNK-456",
+        "status": "COMPLETED",
+        "message": "송금이 완료되었습니다.",
+        "externalTransactionId": "MOCK-TX-001"
+      },
+      "note": "Idempotency-Key 헤더 1개 필수. Gateway 형식은 영문·숫자·._:- 조합 1~100자(UUID 권장). withdrawalAccountId는 내 출금 계좌의 Banking ID. amount는 양의 정수. currency 기본 KRW. HTTP 200이라도 status=FAILED일 수 있다. COMPLETED만 성공 확정. UNKNOWN은 REST에서 PROCESSING으로 표시된다. 같은 키의 금액·수취정보 변경은 409. 별도 송금 상태 GET API는 없다. 같은 헤더·같은 본문으로 POST하여 결과를 확인한다. 수취계좌번호 검색 API는 없다.",
+      "store": "전송 전에 key+정확한 요청 본문을 안전한 앱 저장소에 저장. 응답 유실·PROCESSING 동안 유지하고 해결 전 새 키를 만들지 않는다. 확정 후 화면 상태에는 transferId·publicTransferId·결과만 보관한다. 서버의 멱등성 보존 기간은 미정이므로 임의로 하루 후 재송금하지 않는다.",
+      "resend": "같은 송금을 재시도할 때 동일 Idempotency-Key와 동일 본문. 새로운 송금일 때만 새로운 키. transferId·externalTransactionId는 요청 본문에 넣지 않는다.",
+      "source": "moaje-banking/src/main/kotlin/com/moaje/banking/transfer/web/TransferController.kt",
+      "status": 200,
+      "params": [],
+      "operator": false,
+      "auth": true,
+      "id": "API-10"
+    },
+    {
+      "group": "Asset",
+      "method": "GET",
+      "path": "/api/v1/assets/accounts/{accountId}/detail",
+      "title": "계좌 상세·거래내역 첫 페이지",
+      "request": null,
+      "response_value": {
+        "accountId": "123",
+        "bankCode": "088",
+        "bankName": "테스트 은행",
+        "displayAccountNumber": "ACCOUNT-123",
+        "maskedAccountNumber": "ACCOUNT-123",
+        "balance": 90000,
+        "syncStatus": "SYNCED",
+        "refreshing": false,
+        "refreshFailed": false,
+        "message": null,
+        "lastSyncedAt": "2026-10-11T03:00:00",
+        "transactionHistory": [
+          {
+            "transactionId": "789",
+            "publicTransactionId": "MOAJE-BNK-456",
+            "type": "TRANSFER",
+            "amount": 10000,
+            "targetAccountId": null,
+            "status": "SUCCESS",
+            "merchantName": null,
+            "categoryCode": "TRANSFER",
+            "createdAt": "2026-10-11T03:00:00"
+          }
+        ],
+        "nextCursor": null,
+        "hasNext": false
+      },
+      "note": "계좌 ID 필수. balance는 조회용 장부 값이지 출금 승인 잔액이 아니다. bankCode·bankName은 현재 null일 수 있고 ACCOUNT-123은 실제 계좌번호가 아니다. 최대 50건을 반환한다. 이후 페이지는 /transactions로 요청한다.",
+      "store": "응답은 계좌 화면의 메모리 상태로 보관. 화면 진입·복귀·송금 완료·refresh 후 재조회. 거래 목록은 accountId별로 분리하고 refresh 시 목록과 커서를 함께 초기화. 금융 조회 결과에 서버가 정한 앱 보관 TTL은 없다.",
+      "resend": "accountId는 Path. 단건에는 응답의 transactionId, 다음 페이지에는 nextCursor를 lastTransactionId로 사용. 나머지 잔액·상태·본문은 다시 보내지 않는다.",
+      "source": "moaje-asset/src/main/kotlin/com/moaje/asset/account/web/AccountController.kt",
+      "status": 200,
+      "params": [],
+      "operator": false,
+      "auth": true,
+      "id": "API-11"
+    },
+    {
+      "group": "Asset",
+      "method": "GET",
+      "path": "/api/v1/assets/accounts/{accountId}/{transactionId}/transaction",
+      "title": "거래내역 단건",
+      "request": null,
+      "response_value": {
+        "transactionId": "789",
+        "publicTransactionId": "MOAJE-BNK-456",
+        "type": "TRANSFER",
+        "amount": 10000,
+        "targetAccountId": null,
+        "status": "SUCCESS",
+        "merchantName": null,
+        "categoryCode": "TRANSFER",
+        "createdAt": "2026-10-11T03:00:00"
+      },
+      "note": "accountId와 Asset transactionId 필수. Banking transferId 또는 publicTransactionId를 넣는 API가 아니다. 해당 계좌에 속하지 않는 내역은 404.",
+      "store": "응답은 계좌 화면의 메모리 상태로 보관. 화면 진입·복귀·송금 완료·refresh 후 재조회. 거래 목록은 accountId별로 분리하고 refresh 시 목록과 커서를 함께 초기화. 금융 조회 결과에 서버가 정한 앱 보관 TTL은 없다.",
+      "resend": "accountId는 Path. 단건에는 응답의 transactionId, 다음 페이지에는 nextCursor를 lastTransactionId로 사용. 나머지 잔액·상태·본문은 다시 보내지 않는다.",
+      "source": "moaje-asset/src/main/kotlin/com/moaje/asset/account/web/AccountController.kt",
+      "status": 200,
+      "params": [],
+      "operator": false,
+      "auth": true,
+      "id": "API-12"
+    },
+    {
+      "group": "Asset",
+      "method": "GET",
+      "path": "/api/v1/assets/accounts/{accountId}/transactions",
+      "title": "거래내역 다음 페이지",
+      "request": null,
+      "response_value": {
+        "transactions": [
+          {
+            "transactionId": "789",
+            "publicTransactionId": "MOAJE-BNK-456",
+            "type": "TRANSFER",
+            "amount": 10000,
+            "targetAccountId": null,
+            "status": "SUCCESS",
+            "merchantName": null,
+            "categoryCode": "TRANSFER",
+            "createdAt": "2026-10-11T03:00:00"
+          }
+        ],
+        "nextCursor": null,
+        "hasNext": false
+      },
+      "note": "처음은 lastTransactionId를 아예 생략. 이후 이전 응답의 nextCursor를 Query로 전달한다. hasNext=false 또는 nextCursor=null이면 중단. 한 번에 50건, 최신 ID 순이다. 시간 정렬과 완전히 같다고 가정하지 않는다.",
+      "store": "응답은 계좌 화면의 메모리 상태로 보관. 화면 진입·복귀·송금 완료·refresh 후 재조회. 거래 목록은 accountId별로 분리하고 refresh 시 목록과 커서를 함께 초기화. 금융 조회 결과에 서버가 정한 앱 보관 TTL은 없다.",
+      "resend": "accountId는 Path. 단건에는 응답의 transactionId, 다음 페이지에는 nextCursor를 lastTransactionId로 사용. 나머지 잔액·상태·본문은 다시 보내지 않는다.",
+      "source": "moaje-asset/src/main/kotlin/com/moaje/asset/account/web/AccountController.kt",
+      "status": 200,
+      "params": [
+        {
+          "name": "lastTransactionId",
+          "type": "Long?",
+          "where": "Query",
+          "required": false,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "operator": false,
+      "auth": true,
+      "id": "API-13"
+    },
+    {
+      "group": "Asset",
+      "method": "POST",
+      "path": "/api/v1/assets/accounts/{accountId}/refresh",
+      "title": "최신 계좌·거래내역 갱신",
+      "request": null,
+      "response_value": {
+        "accountId": "123",
+        "bankCode": "088",
+        "bankName": "테스트 은행",
+        "displayAccountNumber": "ACCOUNT-123",
+        "maskedAccountNumber": "ACCOUNT-123",
+        "balance": 90000,
+        "syncStatus": "SYNCED",
+        "refreshing": false,
+        "refreshFailed": false,
+        "message": null,
+        "lastSyncedAt": "2026-10-11T03:00:00",
+        "transactionHistory": [
+          {
+            "transactionId": "789",
+            "publicTransactionId": "MOAJE-BNK-456",
+            "type": "TRANSFER",
+            "amount": 10000,
+            "targetAccountId": null,
+            "status": "SUCCESS",
+            "merchantName": null,
+            "categoryCode": "TRANSFER",
+            "createdAt": "2026-10-11T03:00:00"
+          }
+        ],
+        "nextCursor": null,
+        "hasNext": false
+      },
+      "note": "본문 없음. Banking을 거쳐 Mock 잔액·상태·거래내역을 동기화한다. 완료 후 첫 페이지를 새 응답으로 교체한다. 거래 상태와 동기화 상태는 서로 다르다. 연속 탭은 잠그고 기존 커서를 재사용하지 않는다.",
+      "store": "응답은 계좌 화면의 메모리 상태로 보관. 화면 진입·복귀·송금 완료·refresh 후 재조회. 거래 목록은 accountId별로 분리하고 refresh 시 목록과 커서를 함께 초기화. 금융 조회 결과에 서버가 정한 앱 보관 TTL은 없다.",
+      "resend": "accountId는 Path. 단건에는 응답의 transactionId, 다음 페이지에는 nextCursor를 lastTransactionId로 사용. 나머지 잔액·상태·본문은 다시 보내지 않는다.",
+      "source": "moaje-asset/src/main/kotlin/com/moaje/asset/account/web/AccountController.kt",
+      "status": 200,
+      "params": [],
+      "operator": false,
+      "auth": true,
+      "id": "API-14"
+    },
+    {
+      "group": "Asset",
+      "method": "POST",
+      "path": "/api/v1/assets/cashflow/daily-limit",
+      "title": "하루 사용 가능 금액",
+      "request": {
+        "expectedIncome": 200000,
+        "fixedExpenses": 50000,
+        "eventBuffer": 10000,
+        "daysUntilNextPayday": 10,
+        "snapshotDate": "2026-10-11",
+        "forceRefresh": false
+      },
+      "response_value": {
+        "userId": "123",
+        "currentBalance": 90000,
+        "expectedIncome": 200000,
+        "fixedExpenses": 50000,
+        "eventBuffer": 10000,
+        "daysUntilNextPayday": 10,
+        "dailyLimit": 23000,
+        "snapshotDate": "2026-10-11"
+      },
+      "note": "daysUntilNextPayday만 필수이며 1 이상. 다른 금액 기본 0, 음수 금지. snapshotDate 기본 서버 당일, forceRefresh 기본 false. 날짜는 앱에서 명시하는 편이 안전하다. 사용자 계좌 없음·ACTIVE 없음은 409. ACTIVE 잔액 합계 0원은 정상이다. 일수는 앱이 입력한다. dailyLimit=(currentBalance+expectedIncome-fixedExpenses-eventBuffer)/일수이며 소수 4자리 절삭. 음수 결과도 가능하므로 지출 여유가 부족하다고 안내한다.",
+      "store": "일수·예상수입·고정지출·예비비는 입력 화면 상태로 관리. 계산 결과는 당일 화면용이며 잔액·입력·날짜 변경 시 다시 계산. 앱 영구 캐시 TTL은 미정.",
+      "resend": "재계산에는 입력값만 전달. currentBalance·dailyLimit은 서버 계산 결과이므로 요청에 넣지 않는다. Work의 잔액 전용 RPC와 별개의 API.",
+      "source": "moaje-asset/src/main/kotlin/com/moaje/asset/cashflow/web/DailyCashflowController.kt",
+      "status": 200,
+      "params": [],
+      "operator": false,
+      "auth": true,
+      "id": "API-15"
+    },
+    {
+      "group": "Asset",
+      "method": "GET",
+      "path": "/api/v1/assets/cashflow/monthly",
+      "title": "월별 수입·지출·자금이동",
+      "request": null,
+      "response_value": {
+        "userId": "123",
+        "yearMonth": "2026-09",
+        "incomeAmount": 200000,
+        "expenseAmount": 100000,
+        "transferAmount": 10000,
+        "revision": 1,
+        "calculatedAt": "2026-10-01T00:00:00"
+      },
+      "note": "yearMonth Query 필수, yyyy-MM. 집계가 없으면 계산하여 반환한다. TRANSFER는 소비·수입에서 제외하는 단순 자금 이동이다. 금액이 0인 카테고리도 반환한다. 늦은 거래 복구 후 같은 달 revision이 증가할 수 있다.",
+      "store": "userId+yearMonth별 화면 캐시. 다시 조회해 더 큰 revision이면 전체 합계로 교체하며 이전 합계에 더하지 않는다. 앱 캐시의 고정 TTL은 정해져 있지 않다.",
+      "resend": "요청에는 yearMonth만. revision과 합계 금액을 요청에 넣지 않는다.",
+      "source": "moaje-asset/src/main/kotlin/com/moaje/asset/cashflow/web/MonthlyCashflowController.kt",
+      "status": 200,
+      "params": [
+        {
+          "name": "yearMonth",
+          "type": "yyyy-MM",
+          "where": "Query",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "operator": false,
+      "auth": true,
+      "id": "API-16"
+    },
+    {
+      "group": "Asset",
+      "method": "GET",
+      "path": "/api/v1/assets/cashflow/category",
+      "title": "월별 카테고리 합계",
+      "request": null,
+      "response_value": {
+        "userId": "123",
+        "yearMonth": "2026-09",
+        "revision": 1,
+        "categories": [
+          {
+            "category": "INCOME",
+            "amount": 0
+          },
+          {
+            "category": "FOOD",
+            "amount": 0
+          },
+          {
+            "category": "CAFE",
+            "amount": 100000
+          },
+          {
+            "category": "TRANSPORT",
+            "amount": 0
+          },
+          {
+            "category": "CULTURE",
+            "amount": 0
+          },
+          {
+            "category": "SHOPPING",
+            "amount": 0
+          },
+          {
+            "category": "STUDY",
+            "amount": 0
+          },
+          {
+            "category": "HOUSING",
+            "amount": 0
+          },
+          {
+            "category": "TRANSFER",
+            "amount": 0
+          },
+          {
+            "category": "OTHER",
+            "amount": 0
+          },
+          {
+            "category": "UNCATEGORIZED",
+            "amount": 0
+          }
+        ],
+        "calculatedAt": "2026-10-01T00:00:00"
+      },
+      "note": "yearMonth Query 필수, yyyy-MM. 집계가 없으면 계산하여 반환한다. TRANSFER는 소비·수입에서 제외하는 단순 자금 이동이다. 금액이 0인 카테고리도 반환한다. 늦은 거래 복구 후 같은 달 revision이 증가할 수 있다.",
+      "store": "userId+yearMonth별 화면 캐시. 다시 조회해 더 큰 revision이면 전체 합계로 교체하며 이전 합계에 더하지 않는다. 앱 캐시의 고정 TTL은 정해져 있지 않다.",
+      "resend": "요청에는 yearMonth만. revision과 합계 금액을 요청에 넣지 않는다.",
+      "source": "moaje-asset/src/main/kotlin/com/moaje/asset/cashflow/web/CategoryCashflowController.kt",
+      "status": 200,
+      "params": [
+        {
+          "name": "yearMonth",
+          "type": "yyyy-MM",
+          "where": "Query",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "operator": false,
+      "auth": true,
+      "id": "API-17"
+    },
+    {
+      "group": "Mock (서버 전용)",
+      "method": "POST",
+      "path": "/oauth/2.0/token",
+      "title": "Mock 전용 토큰 발급",
+      "request": {
+        "ci": "TEST-CI-001",
+        "userName": "테스트학생",
+        "phoneNumber": "01000000000"
+      },
+      "response_value": {
+        "accessToken": "<MOCK_TOKEN>",
+        "tokenType": "Bearer",
+        "expiresIn": 1800
+      },
+      "note": "앱 호출 금지. Banking 또는 로컬 테스트 도구가 Mock 전용 Bearer와 요청 본문 바이트의 HMAC-SHA256을 X-Signature로 보낸다. Auth JWT와 다른 토큰이다. /oauth/2.0/token은 이 Interceptor 대상에서 제외된다. 응답은 형식 예시이며 실제 원장 값이 아니다.",
+      "store": "Client 앱은 Mock 토큰·서명키·providerAccountId·평문 원장 정보를 보관하지 않는다. 서버 측 저장 기간은 별도 내부 규칙.",
+      "resend": "이 API의 값을 Client가 Banking API로 그대로 재전송하지 않는다. clientTransferId는 Banking transferId와 같은 값.",
+      "source": "backing-mockup/src/main/kotlin/com/example/bankingmockup/auth/presentation/AuthController.kt",
+      "status": 200,
+      "params": [],
+      "operator": false
+    },
+    {
+      "group": "Mock (서버 전용)",
+      "method": "POST",
+      "path": "/api/accounts",
+      "title": "Mock 계좌 생성",
+      "request": {
+        "bankCode": "001",
+        "productName": "테스트 통장",
+        "initialBalance": 100000
+      },
+      "response_value": {
+        "providerAccountId": "MOCK-ACCOUNT-001",
+        "accountNumber": "TEST-ACCOUNT-001",
+        "bankCode": "001",
+        "productName": "테스트 통장",
+        "balance": 100000,
+        "status": "ACTIVE",
+        "createdAt": "2026-10-11T03:00:00Z",
+        "canceledAt": null
+      },
+      "note": "앱 호출 금지. Banking 또는 로컬 테스트 도구가 Mock 전용 Bearer와 요청 본문 바이트의 HMAC-SHA256을 X-Signature로 보낸다. Auth JWT와 다른 토큰이다. /oauth/2.0/token은 이 Interceptor 대상에서 제외된다. 응답은 형식 예시이며 실제 원장 값이 아니다.",
+      "store": "Client 앱은 Mock 토큰·서명키·providerAccountId·평문 원장 정보를 보관하지 않는다. 서버 측 저장 기간은 별도 내부 규칙.",
+      "resend": "이 API의 값을 Client가 Banking API로 그대로 재전송하지 않는다. clientTransferId는 Banking transferId와 같은 값.",
+      "source": "backing-mockup/src/main/kotlin/com/example/bankingmockup/account/presentation/AccountController.kt",
+      "status": 200,
+      "params": [],
+      "operator": false
+    },
+    {
+      "group": "Mock (서버 전용)",
+      "method": "DELETE",
+      "path": "/api/accounts/{accountNumber}",
+      "title": "Mock 계좌 해지",
+      "request": null,
+      "response_value": {
+        "providerAccountId": "MOCK-ACCOUNT-001",
+        "accountNumber": "TEST-ACCOUNT-001",
+        "bankCode": "001",
+        "productName": "테스트 통장",
+        "balance": 100000,
+        "status": "CANCELED",
+        "createdAt": "2026-10-11T03:00:00Z",
+        "canceledAt": "2026-10-11T03:00:00Z"
+      },
+      "note": "앱 호출 금지. Banking 또는 로컬 테스트 도구가 Mock 전용 Bearer와 요청 본문 바이트의 HMAC-SHA256을 X-Signature로 보낸다. Auth JWT와 다른 토큰이다. /oauth/2.0/token은 이 Interceptor 대상에서 제외된다. 응답은 형식 예시이며 실제 원장 값이 아니다.",
+      "store": "Client 앱은 Mock 토큰·서명키·providerAccountId·평문 원장 정보를 보관하지 않는다. 서버 측 저장 기간은 별도 내부 규칙.",
+      "resend": "이 API의 값을 Client가 Banking API로 그대로 재전송하지 않는다. clientTransferId는 Banking transferId와 같은 값.",
+      "source": "backing-mockup/src/main/kotlin/com/example/bankingmockup/account/presentation/AccountController.kt",
+      "status": 200,
+      "params": [],
+      "operator": false
+    },
+    {
+      "group": "Mock (서버 전용)",
+      "method": "GET",
+      "path": "/api/accounts/{accountNumber}",
+      "title": "Mock 계좌 조회",
+      "request": null,
+      "response_value": {
+        "providerAccountId": "MOCK-ACCOUNT-001",
+        "accountNumber": "TEST-ACCOUNT-001",
+        "bankCode": "001",
+        "productName": "테스트 통장",
+        "balance": 100000,
+        "status": "ACTIVE",
+        "createdAt": "2026-10-11T03:00:00Z",
+        "canceledAt": null
+      },
+      "note": "앱 호출 금지. Banking 또는 로컬 테스트 도구가 Mock 전용 Bearer와 요청 본문 바이트의 HMAC-SHA256을 X-Signature로 보낸다. Auth JWT와 다른 토큰이다. /oauth/2.0/token은 이 Interceptor 대상에서 제외된다. 응답은 형식 예시이며 실제 원장 값이 아니다.",
+      "store": "Client 앱은 Mock 토큰·서명키·providerAccountId·평문 원장 정보를 보관하지 않는다. 서버 측 저장 기간은 별도 내부 규칙.",
+      "resend": "이 API의 값을 Client가 Banking API로 그대로 재전송하지 않는다. clientTransferId는 Banking transferId와 같은 값.",
+      "source": "backing-mockup/src/main/kotlin/com/example/bankingmockup/account/presentation/AccountController.kt",
+      "status": 200,
+      "params": [],
+      "operator": false
+    },
+    {
+      "group": "Mock (서버 전용)",
+      "method": "GET",
+      "path": "/api/accounts/{accountNumber}/histories",
+      "title": "Mock 전체 거래내역",
+      "request": null,
+      "response_value": [
+        {
+          "transactionId": "MOCK-TX-001",
+          "accountNumber": "TEST-ACCOUNT-001",
+          "type": "WITHDRAWAL",
+          "amount": 1000,
+          "counterpartyAccountNumber": null,
+          "counterpartyBankCode": null,
+          "merchantName": "테스트카페",
+          "memo": null,
+          "createdAt": "2026-10-11T03:00:00Z",
+          "completedAtEpochMillis": 1791687600000
+        }
+      ],
+      "note": "앱 호출 금지. Banking 또는 로컬 테스트 도구가 Mock 전용 Bearer와 요청 본문 바이트의 HMAC-SHA256을 X-Signature로 보낸다. Auth JWT와 다른 토큰이다. /oauth/2.0/token은 이 Interceptor 대상에서 제외된다. 응답은 형식 예시이며 실제 원장 값이 아니다.",
+      "store": "Client 앱은 Mock 토큰·서명키·providerAccountId·평문 원장 정보를 보관하지 않는다. 서버 측 저장 기간은 별도 내부 규칙.",
+      "resend": "이 API의 값을 Client가 Banking API로 그대로 재전송하지 않는다. clientTransferId는 Banking transferId와 같은 값.",
+      "source": "backing-mockup/src/main/kotlin/com/example/bankingmockup/account/presentation/AccountController.kt",
+      "status": 200,
+      "params": [],
+      "operator": false
+    },
+    {
+      "group": "Mock (서버 전용)",
+      "method": "GET",
+      "path": "/api/accounts/providers/{providerAccountId}/snapshot",
+      "title": "Mock 증분 스냅샷",
+      "request": null,
+      "response_value": {
+        "providerAccountId": "MOCK-ACCOUNT-001",
+        "balance": 100000,
+        "status": "ACTIVE",
+        "asOf": "2026-10-11T03:00:00Z",
+        "histories": [
+          {
+            "transactionId": "MOCK-TX-001",
+            "accountNumber": "",
+            "type": "WITHDRAWAL",
+            "amount": 1000,
+            "counterpartyAccountNumber": null,
+            "counterpartyBankCode": null,
+            "merchantName": "테스트카페",
+            "memo": null,
+            "createdAt": "2026-10-11T03:00:00Z",
+            "completedAtEpochMillis": 1791687600000
+          }
+        ]
+      },
+      "note": "앱 호출 금지. Banking 또는 로컬 테스트 도구가 Mock 전용 Bearer와 요청 본문 바이트의 HMAC-SHA256을 X-Signature로 보낸다. Auth JWT와 다른 토큰이다. /oauth/2.0/token은 이 Interceptor 대상에서 제외된다. 응답은 형식 예시이며 실제 원장 값이 아니다.",
+      "store": "Client 앱은 Mock 토큰·서명키·providerAccountId·평문 원장 정보를 보관하지 않는다. 서버 측 저장 기간은 별도 내부 규칙.",
+      "resend": "이 API의 값을 Client가 Banking API로 그대로 재전송하지 않는다. clientTransferId는 Banking transferId와 같은 값.",
+      "source": "backing-mockup/src/main/kotlin/com/example/bankingmockup/account/presentation/AccountController.kt",
+      "status": 200,
+      "params": [],
+      "operator": false
+    },
+    {
+      "group": "Mock (서버 전용)",
+      "method": "POST",
+      "path": "/api/accounts/{accountNumber}/withdrawals",
+      "title": "외부 가맹점 출금 시연",
+      "request": {
+        "amount": 1000,
+        "merchantName": "테스트카페",
+        "memo": null
+      },
+      "response_value": {
+        "providerAccountId": "MOCK-ACCOUNT-001",
+        "accountNumber": "TEST-ACCOUNT-001",
+        "bankCode": "001",
+        "productName": "테스트 통장",
+        "balance": 100000,
+        "status": "ACTIVE",
+        "createdAt": "2026-10-11T03:00:00Z",
+        "canceledAt": null
+      },
+      "note": "앱 호출 금지. Banking 또는 로컬 테스트 도구가 Mock 전용 Bearer와 요청 본문 바이트의 HMAC-SHA256을 X-Signature로 보낸다. Auth JWT와 다른 토큰이다. /oauth/2.0/token은 이 Interceptor 대상에서 제외된다. 응답은 형식 예시이며 실제 원장 값이 아니다.",
+      "store": "Client 앱은 Mock 토큰·서명키·providerAccountId·평문 원장 정보를 보관하지 않는다. 서버 측 저장 기간은 별도 내부 규칙.",
+      "resend": "이 API의 값을 Client가 Banking API로 그대로 재전송하지 않는다. clientTransferId는 Banking transferId와 같은 값.",
+      "source": "backing-mockup/src/main/kotlin/com/example/bankingmockup/account/presentation/AccountController.kt",
+      "status": 200,
+      "params": [],
+      "operator": false
+    },
+    {
+      "group": "Mock (서버 전용)",
+      "method": "POST",
+      "path": "/api/transfers",
+      "title": "Mock 송금",
+      "request": {
+        "clientTransferId": "456",
+        "fromProviderAccountId": "MOCK-ACCOUNT-001",
+        "toAccountNumber": "TEST-RECIPIENT-001",
+        "amount": 1000,
+        "memo": null
+      },
+      "response_value": {
+        "clientTransferId": "456",
+        "fromAccountNumber": "TEST-ACCOUNT-001",
+        "toAccountNumber": "TEST-RECIPIENT-001",
+        "amount": 1000,
+        "fromBalance": 99000,
+        "toBalance": 1000,
+        "debitHistory": {
+          "transactionId": "MOCK-TX-001",
+          "accountNumber": "TEST-ACCOUNT-001",
+          "type": "TRANSFER_OUT",
+          "amount": 1000,
+          "counterpartyAccountNumber": null,
+          "counterpartyBankCode": null,
+          "memo": null,
+          "createdAt": "2026-10-11T03:00:00Z"
+        },
+        "creditHistory": {
+          "transactionId": "MOCK-TX-001",
+          "accountNumber": "TEST-ACCOUNT-001",
+          "type": "TRANSFER_IN",
+          "amount": 1000,
+          "counterpartyAccountNumber": null,
+          "counterpartyBankCode": null,
+          "memo": null,
+          "createdAt": "2026-10-11T03:00:00Z"
+        }
+      },
+      "note": "앱 호출 금지. Banking 또는 로컬 테스트 도구가 Mock 전용 Bearer와 요청 본문 바이트의 HMAC-SHA256을 X-Signature로 보낸다. Auth JWT와 다른 토큰이다. /oauth/2.0/token은 이 Interceptor 대상에서 제외된다. 응답은 형식 예시이며 실제 원장 값이 아니다.",
+      "store": "Client 앱은 Mock 토큰·서명키·providerAccountId·평문 원장 정보를 보관하지 않는다. 서버 측 저장 기간은 별도 내부 규칙.",
+      "resend": "이 API의 값을 Client가 Banking API로 그대로 재전송하지 않는다. clientTransferId는 Banking transferId와 같은 값.",
+      "source": "backing-mockup/src/main/kotlin/com/example/bankingmockup/transfer/presentation/TransferController.kt",
+      "status": 200,
+      "params": [],
+      "operator": false
+    },
+    {
+      "group": "Mock (서버 전용)",
+      "method": "POST",
+      "path": "/api/transfers/{clientTransferId}/reverse",
+      "title": "Mock 반전 거래",
+      "request": null,
+      "response_value": {
+        "clientTransferId": "456",
+        "fromAccountNumber": "TEST-ACCOUNT-001",
+        "toAccountNumber": "TEST-RECIPIENT-001",
+        "amount": 1000,
+        "fromBalance": 99000,
+        "toBalance": 1000,
+        "alreadyReversed": false,
+        "debitReversalHistory": {
+          "transactionId": "MOCK-TX-001",
+          "accountNumber": "TEST-ACCOUNT-001",
+          "type": "REVERSAL_IN",
+          "amount": 1000,
+          "counterpartyAccountNumber": null,
+          "counterpartyBankCode": null,
+          "memo": null,
+          "createdAt": "2026-10-11T03:00:00Z"
+        },
+        "creditReversalHistory": {
+          "transactionId": "MOCK-TX-001",
+          "accountNumber": "TEST-ACCOUNT-001",
+          "type": "REVERSAL_OUT",
+          "amount": 1000,
+          "counterpartyAccountNumber": null,
+          "counterpartyBankCode": null,
+          "memo": null,
+          "createdAt": "2026-10-11T03:00:00Z"
+        }
+      },
+      "note": "앱 호출 금지. Banking 또는 로컬 테스트 도구가 Mock 전용 Bearer와 요청 본문 바이트의 HMAC-SHA256을 X-Signature로 보낸다. Auth JWT와 다른 토큰이다. /oauth/2.0/token은 이 Interceptor 대상에서 제외된다. 응답은 형식 예시이며 실제 원장 값이 아니다.",
+      "store": "Client 앱은 Mock 토큰·서명키·providerAccountId·평문 원장 정보를 보관하지 않는다. 서버 측 저장 기간은 별도 내부 규칙.",
+      "resend": "이 API의 값을 Client가 Banking API로 그대로 재전송하지 않는다. clientTransferId는 Banking transferId와 같은 값.",
+      "source": "backing-mockup/src/main/kotlin/com/example/bankingmockup/transfer/presentation/TransferController.kt",
+      "status": 200,
+      "params": [],
+      "operator": false
+    },
+    {
+      "group": "Mock (서버 전용)",
+      "method": "GET",
+      "path": "/api/transfers/{clientTransferId}",
+      "title": "Mock 결과 조회",
+      "request": null,
+      "response_value": {
+        "clientTransferId": "456",
+        "fromAccountNumber": "TEST-ACCOUNT-001",
+        "toAccountNumber": "TEST-RECIPIENT-001",
+        "amount": 1000,
+        "fromBalance": 99000,
+        "toBalance": 1000,
+        "debitTransactionId": "MOCK-DEBIT-001",
+        "creditTransactionId": "MOCK-CREDIT-001",
+        "status": "SUCCEEDED",
+        "debitReversalTransactionId": null,
+        "creditReversalTransactionId": null,
+        "reversedAt": null
+      },
+      "note": "앱 호출 금지. Banking 또는 로컬 테스트 도구가 Mock 전용 Bearer와 요청 본문 바이트의 HMAC-SHA256을 X-Signature로 보낸다. Auth JWT와 다른 토큰이다. /oauth/2.0/token은 이 Interceptor 대상에서 제외된다. 응답은 형식 예시이며 실제 원장 값이 아니다.",
+      "store": "Client 앱은 Mock 토큰·서명키·providerAccountId·평문 원장 정보를 보관하지 않는다. 서버 측 저장 기간은 별도 내부 규칙.",
+      "resend": "이 API의 값을 Client가 Banking API로 그대로 재전송하지 않는다. clientTransferId는 Banking transferId와 같은 값.",
+      "source": "backing-mockup/src/main/kotlin/com/example/bankingmockup/transfer/presentation/TransferController.kt",
+      "status": 200,
+      "params": [],
+      "operator": false
+    },
+    {
+      "group": "Mock (서버 전용)",
+      "method": "POST",
+      "path": "/internal/test-fixtures/personas",
+      "title": "과거 거래 테스트 데이터 생성",
+      "request": {
+        "fixtureRunId": "test-persona-001",
+        "ownerCi": "TEST-CI-001",
+        "bankCode": "001",
+        "productName": "테스트 통장",
+        "persona": "BALANCED_STUDENT",
+        "months": 3
+      },
+      "response_value": {
+        "fixtureRunId": "test-persona-001",
+        "providerAccountId": "MOCK-ACCOUNT-001",
+        "persona": "BALANCED_STUDENT",
+        "months": [
+          "2026-08",
+          "2026-09",
+          "2026-10"
+        ],
+        "createdTransactionCount": 24,
+        "skippedTransactionCount": 0
+      },
+      "note": "테스트 전용. local/test 프로필 + fixture.enabled=true + X-Fixture-Token 모두 필요. 일반 HMAC API와 다르다. fixtureRunId·ownerCi·bankCode·productName 필수. persona 기본 BALANCED_STUDENT, months 기본 3/범위 1~6. 기존 ACTIVE 테스트 계좌에만 생성한다. 동일 fixtureRunId 반복 생성은 기존 거래를 건너뛴다. 월 목록·거래 수는 예시다.",
+      "store": "일반 앱 저장 금지. 운영자가 테스트 생성 내역과 fixtureRunId를 정리 완료 시까지 보관.",
+      "resend": "동일 데이터 생성 재시도에는 같은 fixtureRunId. 다른 합성 데이터는 새 실행 ID.",
+      "source": "backing-mockup/src/main/kotlin/com/example/bankingmockup/fixture/presentation/TestFixtureController.kt",
+      "status": 200,
+      "params": [],
+      "operator": false
+    },
+    {
+      "group": "Asset",
+      "method": "GET",
+      "path": "/api/v1/assets/accounts",
+      "title": "내 계좌 목록",
+      "request": null,
+      "response_value": [
+        {
+          "accountId": "123456789012345679",
+          "bankCode": "088",
+          "bankName": "테스트 은행",
+          "balance": 100000,
+          "status": "ACTIVE"
+        }
+      ],
+      "note": "JWT 소유자의 계좌만 반환. 미연동이면 빈 배열. 닫힌 계좌는 status=CLOSED로 반환.",
+      "source": "moaje-asset/src/main/kotlin/com/moaje/asset/account/web/AccountController.kt",
+      "status": 200,
+      "params": [],
+      "operator": false,
+      "auth": true,
+      "id": "API-52"
+    }
+  ],
+  "models": {
+    "RegisterRequest": {
+      "fields": [
+        {
+          "name": "email",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {
+            "min_length": 3,
+            "max_length": 255
+          }
+        },
+        {
+          "name": "pin",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {
+            "min_length": 6,
+            "max_length": 6,
+            "pattern": "^\\d{6}$"
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-auth\\app\\schemas\\auth.py",
+      "line": 8
+    },
+    "RegisterResponse": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "email",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "is_active",
+          "type": "bool",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-auth\\app\\schemas\\auth.py",
+      "line": 13
+    },
+    "LoginRequest": {
+      "fields": [
+        {
+          "name": "email",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {
+            "min_length": 3,
+            "max_length": 255
+          }
+        },
+        {
+          "name": "pin",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {
+            "min_length": 6,
+            "max_length": 6,
+            "pattern": "^\\d{6}$"
+          }
+        },
+        {
+          "name": "device_info",
+          "type": "str | None",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "max_length": 500
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-auth\\app\\schemas\\auth.py",
+      "line": 19
+    },
+    "TokenResponse": {
+      "fields": [
+        {
+          "name": "access_token",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "refresh_token",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "token_type",
+          "type": "str",
+          "required": false,
+          "default": "bearer",
+          "opts": {}
+        },
+        {
+          "name": "expires_in",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-auth\\app\\schemas\\auth.py",
+      "line": 25
+    },
+    "ValidateAccessTokenRequest": {
+      "fields": [
+        {
+          "name": "access_token",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {
+            "min_length": 1
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-auth\\app\\schemas\\auth.py",
+      "line": 32
+    },
+    "ValidateAccessTokenResponse": {
+      "fields": [
+        {
+          "name": "is_valid",
+          "type": "bool",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "user_id",
+          "type": "str",
+          "required": false,
+          "default": "",
+          "opts": {}
+        },
+        {
+          "name": "expires_at",
+          "type": "int",
+          "required": false,
+          "default": 0,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-auth\\app\\schemas\\auth.py",
+      "line": 36
+    },
+    "CreateAccountTokenRequest": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "account_number",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {
+            "min_length": 1,
+            "max_length": 255
+          }
+        },
+        {
+          "name": "transaction_id",
+          "type": "str | None",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "max_length": 100
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-auth\\app\\schemas\\auth.py",
+      "line": 42
+    },
+    "CreateAccountTokenResponse": {
+      "fields": [
+        {
+          "name": "account_token",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-auth\\app\\schemas\\auth.py",
+      "line": 48
+    },
+    "ValidateAccountTokenRequest": {
+      "fields": [
+        {
+          "name": "account_token",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {
+            "min_length": 1,
+            "max_length": 255
+          }
+        },
+        {
+          "name": "transaction_id",
+          "type": "str | None",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "max_length": 100
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-auth\\app\\schemas\\auth.py",
+      "line": 53
+    },
+    "ValidateAccountTokenResponse": {
+      "fields": [
+        {
+          "name": "is_valid",
+          "type": "bool",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "user_id",
+          "type": "int | None",
+          "required": false,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "is_active",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-auth\\app\\schemas\\auth.py",
+      "line": 58
+    },
+    "RefreshRequest": {
+      "fields": [
+        {
+          "name": "refresh_token",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {
+            "min_length": 32
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-auth\\app\\schemas\\auth.py",
+      "line": 64
+    },
+    "LogoutRequest": {
+      "fields": [
+        {
+          "name": "refresh_token",
+          "type": "str | None",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "min_length": 32
+          }
+        },
+        {
+          "name": "all_devices",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-auth\\app\\schemas\\auth.py",
+      "line": 68
+    },
+    "MessageResponse": {
+      "fields": [
+        {
+          "name": "message",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-auth\\app\\schemas\\auth.py",
+      "line": 73
+    },
+    "HealthResponse": {
+      "fields": [
+        {
+          "name": "status",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-auth\\app\\schemas\\auth.py",
+      "line": 77
+    },
+    "ErrorDetail": {
+      "fields": [
+        {
+          "name": "field",
+          "type": "str | None",
+          "required": false,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "reason",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-auth\\app\\schemas\\common.py",
+      "line": 12
+    },
+    "ErrorBody": {
+      "fields": [
+        {
+          "name": "reason",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "details",
+          "type": "list[ErrorDetail]",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "requiredAction",
+          "type": "Literal['NONE', 'RE_LOGIN', 'REFRESH_TOKEN', 'MFA_AUTH', 'RETRY', 'RETRY_LATER', 'CONTACT_SUPPORT']",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-auth\\app\\schemas\\common.py",
+      "line": 17
+    },
+    "ApiResponse": {
+      "fields": [
+        {
+          "name": "success",
+          "type": "bool",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "status",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "code",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "message",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "data",
+          "type": "T | None",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "error",
+          "type": "ErrorBody | None",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "traceId",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "timestamp",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel",
+        "Generic[T]"
+      ],
+      "source": "moaje-auth\\app\\schemas\\common.py",
+      "line": 31
+    },
+    "FdsDetectRequest": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "사용자 ID"
+          }
+        },
+        {
+          "name": "transaction_id",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "거래 고유 ID"
+          }
+        },
+        {
+          "name": "amount",
+          "type": "Decimal",
+          "required": true,
+          "default": null,
+          "opts": {
+            "ge": 0,
+            "description": "거래 금액"
+          }
+        },
+        {
+          "name": "merchant",
+          "type": "str",
+          "required": false,
+          "default": "",
+          "opts": {
+            "default": "",
+            "description": "가맹점명"
+          }
+        },
+        {
+          "name": "hour",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {
+            "ge": 0,
+            "le": 23,
+            "description": "거래 발생 시간 (0~23)"
+          }
+        },
+        {
+          "name": "occurred_at",
+          "type": "datetime | None",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "description": "거래가 실제로 일어난 시각. Kafka 수신 시 이벤트의 succeeded_at 을 넣는다."
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\fds.py",
+      "line": 8
+    },
+    "FdsDetectResponse": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "transaction_id",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "risk_score",
+          "type": "Decimal",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "risk_level",
+          "type": "RiskLevel",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "reason_code",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "is_alerted",
+          "type": "bool",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "message",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\fds.py",
+      "line": 21
+    },
+    "BlacklistCreateRequest": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "차단할 사용자 ID"
+          }
+        },
+        {
+          "name": "reason",
+          "type": "BlacklistReason",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "description",
+          "type": "str",
+          "required": false,
+          "default": "",
+          "opts": {
+            "default": "",
+            "description": "차단 사유 설명"
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\fds.py",
+      "line": 32
+    },
+    "BlacklistResponse": {
+      "fields": [
+        {
+          "name": "id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "reason",
+          "type": "BlacklistReason",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "description",
+          "type": "str | None",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "is_active",
+          "type": "bool",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "registered_at",
+          "type": "datetime",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "released_at",
+          "type": "datetime | None",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\fds.py",
+      "line": 39
+    },
+    "QuestionDropoffResponse": {
+      "fields": [
+        {
+          "name": "question_no",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "answered",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "이 문항에 답한 사용자 수"
+          }
+        },
+        {
+          "name": "dropoff_rate",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "다음 문항으로 넘어가지 않은 비율 0~1"
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\metrics.py",
+      "line": 4
+    },
+    "MetricsResponse": {
+      "fields": [
+        {
+          "name": "period_days",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "total_users",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "기간 내 기능을 쓴 사용자 수"
+          }
+        },
+        {
+          "name": "onboarding_started",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "onboarding_completed",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "completion_rate",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "온보딩 완료율 0~1"
+          }
+        },
+        {
+          "name": "question_dropoff",
+          "type": "list[QuestionDropoffResponse]",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "simulator_users",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "simulator_calls",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "simulator_reuse_rate",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "2회 이상 사용한 사용자 비율 0~1"
+          }
+        },
+        {
+          "name": "recap_users",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "recap_views",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "recap_repeat_rate",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "서로 다른 달을 2개 이상 본 사용자 비율 0~1"
+          }
+        },
+        {
+          "name": "is_reliable",
+          "type": "bool",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "false 면 표본이 적어 비율을 일반화하기 어렵다"
+          }
+        },
+        {
+          "name": "note",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "warnings",
+          "type": "list[str]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default_factory": "list"
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\metrics.py",
+      "line": 10
+    },
+    "QuestionOption": {
+      "fields": [
+        {
+          "name": "code",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "label",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\onboarding.py",
+      "line": 9
+    },
+    "QuestionResponse": {
+      "fields": [
+        {
+          "name": "question_no",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "phase",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "text",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "purpose",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "free_text",
+          "type": "bool",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "options",
+          "type": "list[QuestionOption]",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\onboarding.py",
+      "line": 14
+    },
+    "AnswerSubmit": {
+      "fields": [
+        {
+          "name": "question_no",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {
+            "ge": 1,
+            "le": 10
+          }
+        },
+        {
+          "name": "answer_code",
+          "type": "str",
+          "required": false,
+          "default": "UNKNOWN",
+          "opts": {
+            "default": "UNKNOWN",
+            "max_length": 50,
+            "description": "선택지 코드. 모르면 UNKNOWN"
+          }
+        },
+        {
+          "name": "answer_text",
+          "type": "Optional[str]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "description": "서술형 문항의 본문"
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\onboarding.py",
+      "line": 25
+    },
+    "AnswerBulkSubmit": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "answers",
+          "type": "list[AnswerSubmit]",
+          "required": true,
+          "default": null,
+          "opts": {
+            "min_length": 1
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\onboarding.py",
+      "line": 32
+    },
+    "AnswerResponse": {
+      "fields": [
+        {
+          "name": "question_no",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "answer_code",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "answer_label",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "answer_text",
+          "type": "Optional[str]",
+          "required": false,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "answered_at",
+          "type": "datetime",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\onboarding.py",
+      "line": 37
+    },
+    "OnboardingProgress": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "answered_count",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "total_questions",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "is_completed",
+          "type": "bool",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "remaining",
+          "type": "list[int]",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "unknown_answers",
+          "type": "list[int]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default_factory": "list",
+            "description": "'아직 모르겠어요'로 답한 문항. 계산 시 기본 가정이 적용된다."
+          }
+        },
+        {
+          "name": "next_question_no",
+          "type": "Optional[int]",
+          "required": false,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\onboarding.py",
+      "line": 48
+    },
+    "FutureProfileResponse": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "status_code",
+          "type": "Optional[str]",
+          "required": false,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "housing_type",
+          "type": "Optional[str]",
+          "required": false,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "work_env",
+          "type": "Optional[str]",
+          "required": false,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "value_priority",
+          "type": "Optional[str]",
+          "required": false,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "must_keep_category",
+          "type": "Optional[str]",
+          "required": false,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "money_concern",
+          "type": "Optional[str]",
+          "required": false,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "success_image",
+          "type": "Optional[str]",
+          "required": false,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "card_title",
+          "type": "Optional[str]",
+          "required": false,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "card_summary",
+          "type": "Optional[str]",
+          "required": false,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "answered_count",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "is_completed",
+          "type": "bool",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "completed_at",
+          "type": "Optional[datetime]",
+          "required": false,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\onboarding.py",
+      "line": 63
+    },
+    "ReadinessItemResponse": {
+      "fields": [
+        {
+          "name": "key",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "label",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "weight",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "이 항목의 배점"
+          }
+        },
+        {
+          "name": "score",
+          "type": "Optional[int]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "description": "획득 점수. null 이면 데이터가 없어 평가에서 제외된 항목"
+          }
+        },
+        {
+          "name": "detail",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\readiness.py",
+      "line": 7
+    },
+    "ReadinessRequest": {
+      "fields": [
+        {
+          "name": "monthly_income",
+          "type": "Optional[Decimal]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "ge": 0
+          }
+        },
+        {
+          "name": "monthly_housing",
+          "type": "Optional[Decimal]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "ge": 0
+          }
+        },
+        {
+          "name": "monthly_living",
+          "type": "Optional[Decimal]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "ge": 0
+          }
+        },
+        {
+          "name": "monthly_leisure",
+          "type": "Optional[Decimal]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "ge": 0
+          }
+        },
+        {
+          "name": "deposit",
+          "type": "Optional[Decimal]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "ge": 0
+          }
+        },
+        {
+          "name": "move_in_cost",
+          "type": "Optional[Decimal]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "ge": 0
+          }
+        },
+        {
+          "name": "current_asset",
+          "type": "Optional[Decimal]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "ge": 0,
+            "description": "현재 자산. 넣지 않으면 Asset 서비스에서 조회한다."
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\readiness.py",
+      "line": 18
+    },
+    "ReadinessResponse": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "percent",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "사회인 준비도 0~100"
+          }
+        },
+        {
+          "name": "level",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "1~5 단계"
+          }
+        },
+        {
+          "name": "level_label",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "items",
+          "type": "list[ReadinessItemResponse]",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "evaluated",
+          "type": "list[str]",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "평가에 반영된 항목"
+          }
+        },
+        {
+          "name": "excluded",
+          "type": "list[str]",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "데이터가 없어 제외된 항목"
+          }
+        },
+        {
+          "name": "asset_source",
+          "type": "str",
+          "required": false,
+          "default": "INPUT",
+          "opts": {
+            "default": "INPUT",
+            "description": "현재 자산의 출처. INPUT=사용자 입력 / ASSET_SERVICE=Asset 조회 (0원도 포함) / NOT_LINKED=계좌 미연동·활성계좌 없음 / UNAVAILABLE=Asset 조회 실패"
+          }
+        },
+        {
+          "name": "message",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "disclaimer",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "이 수치의 성격. 개인 평가가 아닌 앱 내부 지표임을 알린다."
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\readiness.py",
+      "line": 37
+    },
+    "CategoryShareResponse": {
+      "fields": [
+        {
+          "name": "code",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "label",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "amount",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "share",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "지출 대비 비중 0~1"
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\recap.py",
+      "line": 6
+    },
+    "RecapCoverageResponse": {
+      "fields": [
+        {
+          "name": "total_tx",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "classified_tx",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "unclassified_share",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "is_reliable",
+          "type": "bool",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "false 면 거래가 적거나 미분류 비중이 커서 성향 분석을 하지 않았다."
+          }
+        },
+        {
+          "name": "note",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\recap.py",
+      "line": 13
+    },
+    "RecapResponse": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "year_month",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "revision",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "Asset 집계 버전"
+          }
+        },
+        {
+          "name": "total_income",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "total_expense",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "total_transfer",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "net_saving",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "categories",
+          "type": "list[CategoryShareResponse]",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "top_category",
+          "type": "Optional[CategoryShareResponse]",
+          "required": false,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "nickname",
+          "type": "Optional[str]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "description": "소비패턴 별명. 데이터가 충분할 때만 붙는다."
+          }
+        },
+        {
+          "name": "nickname_reason",
+          "type": "Optional[str]",
+          "required": false,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "coverage",
+          "type": "RecapCoverageResponse",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "insights",
+          "type": "list[str]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default_factory": "list"
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\recap.py",
+      "line": 25
+    },
+    "RecapMonthsResponse": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "months",
+          "type": "list[str]",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "Recap 이 있는 월 목록 (최신순)"
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\recap.py",
+      "line": 48
+    },
+    "BaselineInfo": {
+      "fields": [
+        {
+          "name": "key",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "label",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "amount",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "kind",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "STATISTIC / DERIVED / ASSUMPTION"
+          }
+        },
+        {
+          "name": "source",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "as_of",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "scope",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "url",
+          "type": "str",
+          "required": false,
+          "default": "",
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\simulator.py",
+      "line": 7
+    },
+    "SimulateRequest": {
+      "fields": [
+        {
+          "name": "monthly_income",
+          "type": "Optional[Decimal]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "ge": 0,
+            "description": "세후 월수입"
+          }
+        },
+        {
+          "name": "monthly_housing",
+          "type": "Optional[Decimal]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "ge": 0,
+            "description": "월 주거비"
+          }
+        },
+        {
+          "name": "monthly_living",
+          "type": "Optional[Decimal]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "ge": 0,
+            "description": "월 기본 생활비"
+          }
+        },
+        {
+          "name": "monthly_leisure",
+          "type": "Optional[Decimal]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "ge": 0,
+            "description": "월 여가비"
+          }
+        },
+        {
+          "name": "deposit",
+          "type": "Optional[Decimal]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "ge": 0,
+            "description": "보증금"
+          }
+        },
+        {
+          "name": "move_in_cost",
+          "type": "Optional[Decimal]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "ge": 0,
+            "description": "초기 정착 비용"
+          }
+        },
+        {
+          "name": "current_asset",
+          "type": "Optional[Decimal]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "ge": 0,
+            "description": "현재 자산. 넣지 않으면 Asset 서비스에서 조회한다."
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\simulator.py",
+      "line": 19
+    },
+    "TargetBreakdown": {
+      "fields": [
+        {
+          "name": "deposit",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "move_in_cost",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "emergency_fund",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "total",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\simulator.py",
+      "line": 38
+    },
+    "CashflowBreakdown": {
+      "fields": [
+        {
+          "name": "income",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "housing",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "living",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "leisure",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "expense",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "savable",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\simulator.py",
+      "line": 45
+    },
+    "SimulateResponse": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "target",
+          "type": "TargetBreakdown",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "cashflow",
+          "type": "CashflowBreakdown",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "current_asset",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "gap",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "months_to_goal",
+          "type": "Optional[int]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "description": "달성까지 남은 개월 수. 월 저축 가능액이 0 이하면 null"
+          }
+        },
+        {
+          "name": "progress_rate",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "목표 대비 진행률 0~1"
+          }
+        },
+        {
+          "name": "asset_source",
+          "type": "str",
+          "required": false,
+          "default": "INPUT",
+          "opts": {
+            "default": "INPUT",
+            "description": "현재 자산의 출처. INPUT=사용자 입력 / ASSET_SERVICE=Asset 조회 (0원도 포함) / NOT_LINKED=계좌 미연동·활성계좌 없음 (계좌를 연결하면 해결) / UNAVAILABLE=Asset 조회 실패로 0 처리 (사용자가 할 수 있는 일 없음)"
+          }
+        },
+        {
+          "name": "assumed_keys",
+          "type": "list[str]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default_factory": "list",
+            "description": "사용자가 입력하지 않아 가정값으로 계산한 항목"
+          }
+        },
+        {
+          "name": "baselines",
+          "type": "list[BaselineInfo]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default_factory": "list",
+            "description": "계산에 쓰인 기준값의 출처·기준일·범위"
+          }
+        },
+        {
+          "name": "advice",
+          "type": "list[str]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default_factory": "list"
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\simulator.py",
+      "line": 54
+    },
+    "AdjustRequest": {
+      "fields": [
+        {
+          "name": "monthly_delta",
+          "type": "Decimal",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "월 지출 변화량. 음수면 절약, 양수면 지출 증가"
+          }
+        }
+      ],
+      "bases": [
+        "SimulateRequest"
+      ],
+      "source": "moaje-work\\app\\schemas\\simulator.py",
+      "line": 88
+    },
+    "AdjustResponse": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "monthly_delta",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "base_monthly_savable",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "adjusted_monthly_savable",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "base_months_to_goal",
+          "type": "Optional[int]",
+          "required": false,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "adjusted_months_to_goal",
+          "type": "Optional[int]",
+          "required": false,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "months_saved",
+          "type": "Optional[int]",
+          "required": false,
+          "default": null,
+          "opts": {
+            "default": null,
+            "description": "단축된 개월 수. 양수면 앞당겨짐"
+          }
+        },
+        {
+          "name": "message",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\simulator.py",
+      "line": 96
+    },
+    "BaseResponse": {
+      "fields": [
+        {
+          "name": "success",
+          "type": "bool",
+          "required": false,
+          "default": true,
+          "opts": {}
+        },
+        {
+          "name": "message",
+          "type": "str",
+          "required": false,
+          "default": "ok",
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\spending.py",
+      "line": 7
+    },
+    "SpendingProfileResponse": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "avg_daily_amount",
+          "type": "Decimal",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "peak_spend_hour",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "top_category",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "risk_score_baseline",
+          "type": "Decimal",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "last_analyzed_at",
+          "type": "datetime",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\spending.py",
+      "line": 12
+    },
+    "DailyLimitRequest": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "사용자 ID"
+          }
+        },
+        {
+          "name": "current_balance",
+          "type": "Decimal",
+          "required": true,
+          "default": null,
+          "opts": {
+            "ge": 0,
+            "description": "현재 잔고"
+          }
+        },
+        {
+          "name": "expected_income",
+          "type": "Decimal",
+          "required": false,
+          "default": 0,
+          "opts": {
+            "default": 0,
+            "ge": 0,
+            "description": "예상 알바비"
+          }
+        },
+        {
+          "name": "fixed_expenses",
+          "type": "Decimal",
+          "required": false,
+          "default": 0,
+          "opts": {
+            "default": 0,
+            "ge": 0,
+            "description": "고정 지출"
+          }
+        },
+        {
+          "name": "days_until_payday",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {
+            "ge": 1,
+            "le": 31,
+            "description": "월급날까지 남은 일수"
+          }
+        },
+        {
+          "name": "event_buffer",
+          "type": "Decimal",
+          "required": false,
+          "default": 0,
+          "opts": {
+            "default": 0,
+            "ge": 0,
+            "description": "학사 이벤트 예비비"
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\spending.py",
+      "line": 22
+    },
+    "DailyLimitResponse": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "daily_limit",
+          "type": "Decimal",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "advice",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "formula_detail",
+          "type": "dict",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseResponse"
+      ],
+      "source": "moaje-work\\app\\schemas\\spending.py",
+      "line": 31
+    },
+    "AcademicScheduleCreate": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {
+            "description": "사용자 ID"
+          }
+        },
+        {
+          "name": "event_type",
+          "type": "EventType",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "event_name",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {
+            "max_length": 100
+          }
+        },
+        {
+          "name": "start_date",
+          "type": "date",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "end_date",
+          "type": "date",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "expected_extra_spend",
+          "type": "Decimal",
+          "required": false,
+          "default": 0,
+          "opts": {
+            "default": 0,
+            "ge": 0
+          }
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\spending.py",
+      "line": 38
+    },
+    "AcademicScheduleResponse": {
+      "fields": [
+        {
+          "name": "id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "event_type",
+          "type": "EventType",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "event_name",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "start_date",
+          "type": "datetime",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "end_date",
+          "type": "datetime",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "expected_extra_spend",
+          "type": "Decimal",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\spending.py",
+      "line": 47
+    },
+    "EventSpendingStat": {
+      "fields": [
+        {
+          "name": "event_type",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "event_name",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "start_date",
+          "type": "date",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "end_date",
+          "type": "date",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "period_days",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "avg_daily_spend",
+          "type": "Decimal",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "total_spend",
+          "type": "Decimal",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "vs_normal_ratio",
+          "type": "Decimal",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\spending.py",
+      "line": 60
+    },
+    "FdsSummary": {
+      "fields": [
+        {
+          "name": "total_detected",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "high_count",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "medium_count",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "safety_score",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "safety_grade",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "top_reason",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\spending.py",
+      "line": 72
+    },
+    "SpendingSummary": {
+      "fields": [
+        {
+          "name": "total_tx_count",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "avg_daily_limit",
+          "type": "Decimal",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "peak_spend_date",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "peak_spend_amount",
+          "type": "Decimal",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "lowest_spend_date",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "lowest_spend_amount",
+          "type": "Decimal",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "peak_spend_hour",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "top_category",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "total_log_days",
+          "type": "int",
+          "required": false,
+          "default": 0,
+          "opts": {}
+        },
+        {
+          "name": "daily_limit_compliance_rate",
+          "type": "Decimal",
+          "required": false,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "daily_limit_cv",
+          "type": "Decimal | None",
+          "required": false,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\spending.py",
+      "line": 82
+    },
+    "ScoreBreakdown": {
+      "fields": [
+        {
+          "name": "safety_score",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "daily_limit_score",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "event_score",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "regularity_score",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "total",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\spending.py",
+      "line": 99
+    },
+    "SemesterReportResponse": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "year",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "semester",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "period_label",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "period_start",
+          "type": "date",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "period_end",
+          "type": "date",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "spending",
+          "type": "SpendingSummary",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "fds",
+          "type": "FdsSummary",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "events",
+          "type": "list[EventSpendingStat]",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "score_breakdown",
+          "type": "ScoreBreakdown",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "overall_grade",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "overall_score",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "summary_message",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "badges",
+          "type": "list[str]",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\schemas\\spending.py",
+      "line": 115
+    },
+    "UniversityResponse": {
+      "fields": [
+        {
+          "name": "id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "name",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "short_name",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "region",
+          "type": "Optional[str]",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\calendar.py",
+      "line": 27
+    },
+    "CalendarSyncRequest": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "university_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "year",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "semester",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\calendar.py",
+      "line": 35
+    },
+    "CalendarSyncResponse": {
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "university_name",
+          "type": "str",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "year",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "semester",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "synced_count",
+          "type": "int",
+          "required": true,
+          "default": null,
+          "opts": {}
+        },
+        {
+          "name": "schedules",
+          "type": "list[AcademicScheduleResponse]",
+          "required": true,
+          "default": null,
+          "opts": {}
+        }
+      ],
+      "bases": [
+        "BaseModel"
+      ],
+      "source": "moaje-work\\app\\api\\v1\\endpoints\\calendar.py",
+      "line": 42
+    }
+  },
+  "enums": {
+    "RiskLevel": [
+      "LOW",
+      "MEDIUM",
+      "HIGH"
+    ],
+    "BlacklistReason": [
+      "ABNORMAL_AMOUNT",
+      "ABNORMAL_TIME",
+      "RAPID_REPEAT",
+      "MANUAL"
+    ],
+    "EventType": [
+      "EXAM",
+      "MT",
+      "FESTIVAL",
+      "VACATION",
+      "EMPLOYMENT",
+      "SEMESTER_START",
+      "SEMESTER_END",
+      "MIDTERM",
+      "FINAL",
+      "HOLIDAY"
+    ],
+    "AnalysisType": [
+      "DAILY_LIMIT",
+      "PATTERN_UPDATE",
+      "SCHEDULE_ALERT"
+    ],
+    "PeriodType": [
+      "WEEKLY",
+      "MONTHLY"
+    ]
+  }
+}

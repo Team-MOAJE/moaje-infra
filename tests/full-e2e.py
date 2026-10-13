@@ -120,7 +120,7 @@ async def setup():
     for user, balance in [(sender, 100000), (receiver, 0)]:
         opened = await call('Banking 계좌 개설 ' + user['id'], 'POST', '/api/v1/banking/accounts', user,
                             {'ci': user['ci'], 'userName': '테스트 사용자', 'phoneNumber': '01000000000',
-                             'bankCode': '001', 'productName': 'E2E-' + user['id'], 'initialBalance': balance}, want=201)
+                             'bankCode': '001', 'bankName': '테스트 은행', 'productName': 'E2E-' + user['id'], 'initialBalance': balance}, want=201)
         user['account'] = opened['accountId']
         r = await CLIENT.post('http://mock-banking:8081/oauth/2.0/token', json={
             'ci': user['ci'], 'userName': '테스트 사용자', 'phoneNumber': '01000000000'})
@@ -418,7 +418,7 @@ async def extended(users):
 async def multimonth(users):
     sender = dict(users[0])
     opened = await call('다개월 전용 계좌 100만원 개설', 'POST', '/api/v1/banking/accounts', sender,
-        {'ci': sender['ci'], 'userName': '테스트 사용자', 'phoneNumber': '01000000000', 'bankCode': '001',
+        {'ci': sender['ci'], 'userName': '테스트 사용자', 'phoneNumber': '01000000000', 'bankCode': '001', 'bankName': '테스트 은행',
          'productName': 'E2E-MULTI', 'initialBalance': 1000000}, want=201)
     sender['account'] = opened['accountId']
     await poll(lambda: account_detail(sender), lambda x: x[0] == 200)

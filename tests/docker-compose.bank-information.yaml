@@ -1,0 +1,26 @@
+# 계좌 정보·무한 스크롤 검증 전용. 반드시 별도 -p와 MOAJE_STACK_PREFIX를 함께 지정한다.
+services:
+  auth-mysql:
+    ports: !reset []
+  asset-mysql:
+    ports: !reset []
+  banking-mysql:
+    ports: !reset []
+  redis:
+    ports: !reset []
+  kafka:
+    ports: !reset []
+  mock-banking:
+    ports: !override ["127.0.0.1:19081:8081"]
+  auth:
+    image: moaje-infra-auth:latest
+  gateway:
+    image: moaje-infra-gateway:latest
+    ports: !override ["127.0.0.1:19080:8080"]
+    depends_on: !override
+      auth:
+        condition: service_healthy
+      asset:
+        condition: service_started
+      banking:
+        condition: service_started

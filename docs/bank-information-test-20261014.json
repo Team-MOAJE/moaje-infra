@@ -1,0 +1,127 @@
+[
+  {
+    "name": "현행 Auth 회원가입",
+    "status": "PASS",
+    "detail": "HTTP 201"
+  },
+  {
+    "name": "Auth 로그인",
+    "status": "PASS",
+    "detail": "HTTP 200"
+  },
+  {
+    "name": "현행 Auth 회원가입",
+    "status": "PASS",
+    "detail": "HTTP 201"
+  },
+  {
+    "name": "Auth 로그인",
+    "status": "PASS",
+    "detail": "HTTP 200"
+  },
+  {
+    "name": "Banking 계좌 생성 088",
+    "status": "PASS",
+    "detail": "HTTP 201; bankCode=088; bankName=검증은행 A"
+  },
+  {
+    "name": "Banking 계좌 생성 004",
+    "status": "PASS",
+    "detail": "HTTP 201; bankCode=004; bankName=검증은행 B"
+  },
+  {
+    "name": "Banking 계좌 생성 090",
+    "status": "PASS",
+    "detail": "HTTP 201; bankCode=090; bankName=검증은행 C"
+  },
+  {
+    "name": "계좌 생성 이벤트의 은행 정보가 목록에 반영됨",
+    "status": "PASS",
+    "detail": "HTTP 200; 본인 계좌 2건, 코드 088·004 및 이름 일치"
+  },
+  {
+    "name": "목록에 타인 계좌가 없음",
+    "status": "PASS",
+    "detail": "타인 계좌 제외"
+  },
+  {
+    "name": "Mock 계좌 은행 정보 088",
+    "status": "PASS",
+    "detail": "HTTP 200; bankCode=088"
+  },
+  {
+    "name": "스냅샷 은행 정보 088",
+    "status": "PASS",
+    "detail": "Mock → Banking gRPC → Asset Refresh 은행 정보 일치"
+  },
+  {
+    "name": "선택한 계좌 상세 088",
+    "status": "PASS",
+    "detail": "HTTP 200; 은행 정보와 잔액 일치"
+  },
+  {
+    "name": "선택한 계좌 거래내역 088",
+    "status": "PASS",
+    "detail": "HTTP 200; 해당 계좌 출금 1000원 한 건만 조회"
+  },
+  {
+    "name": "선택한 거래 단건 조회 088",
+    "status": "PASS",
+    "detail": "HTTP 200; 동일 transactionId"
+  },
+  {
+    "name": "Mock 계좌 은행 정보 004",
+    "status": "PASS",
+    "detail": "HTTP 200; bankCode=004"
+  },
+  {
+    "name": "스냅샷 은행 정보 004",
+    "status": "PASS",
+    "detail": "Mock → Banking gRPC → Asset Refresh 은행 정보 일치"
+  },
+  {
+    "name": "선택한 계좌 상세 004",
+    "status": "PASS",
+    "detail": "HTTP 200; 은행 정보와 잔액 일치"
+  },
+  {
+    "name": "선택한 계좌 거래내역 004",
+    "status": "PASS",
+    "detail": "HTTP 200; 해당 계좌 출금 2000원 한 건만 조회"
+  },
+  {
+    "name": "선택한 거래 단건 조회 004",
+    "status": "PASS",
+    "detail": "HTTP 200; 동일 transactionId"
+  },
+  {
+    "name": "타인 계좌 접근 거절 detail",
+    "status": "PASS",
+    "detail": "HTTP 403"
+  },
+  {
+    "name": "타인 계좌 접근 거절 transactions",
+    "status": "PASS",
+    "detail": "HTTP 403"
+  },
+  {
+    "name": "타인 계좌 접근 거절 refresh",
+    "status": "PASS",
+    "detail": "HTTP 403"
+  },
+  {
+    "name": "타인 거래 단건 접근 거절",
+    "status": "PASS",
+    "detail": "HTTP 404; 거래 존재 정보도 노출하지 않음"
+  },
+  {
+    "name": "JWT 없는 목록 접근 거절",
+    "status": "PASS",
+    "detail": "HTTP 401"
+  },
+  {
+    "name": "위조 사용자 헤더보다 검증된 JWT를 우선함",
+    "status": "PASS",
+    "detail": "HTTP 200; 본인 계좌만 조회"
+  }
+]
