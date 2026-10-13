@@ -70,6 +70,7 @@ def create_persona(persona: str, months: int) -> dict[str, Any]:
             "userName": user_name,
             "phoneNumber": phone_number,
             "bankCode": "001",
+            "bankName": "테스트 은행",
             "productName": product_name,
             "initialBalance": 5_000_000,
         },

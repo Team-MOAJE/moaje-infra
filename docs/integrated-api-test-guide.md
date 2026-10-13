@@ -3,6 +3,52 @@
 이 문서는 로컬 Docker Compose 환경에서 Auth, Banking, Mock Banking, Asset, Work가 연결된 흐름을 직접 확인하는 절차를 설명한다.
 새 PC의 설치·키 설정·기동·초기화는 [다른 PC 실행 안내](run-on-another-pc.md)를 먼저 확인한다.
 
+## 계좌 은행 정보 변경 (2026-10-14)
+
+- 계좌 생성 `POST /api/v1/banking/accounts`의 본문에 `bankCode`와 `bankName`을 필수로 보낸다.
+- 예: `"bankCode": "088", "bankName": "테스트 은행"`. 코드는 앞자리 0이 유지되는 문자열이다.
+- `bankCode`는 최대 20자, `bankName`은 최대 100자이며 공백만 보낸 요청은 400으로 거절한다. 양끝 공백은 제거한다.
+- `GET /api/v1/assets/accounts`는 JWT 소유자의 계좌 목록을 반환한다. 미연동 사용자는 빈 배열을 받는다.
+- 목록 항목은 `accountId`, `bankCode`, `bankName`, `balance`, `status`이다. 닫힌 계좌도 상태와 함께 반환한다.
+- 상세 조회와 Refresh 응답에도 같은 은행 정보를 포함한다. 계좌 생성 직후에는 Kafka 소비까지 잠시 기다려야 목록에 나타날 수 있다.
+- Banking V7, Asset V6 마이그레이션이 기존 볼륨에 컬럼을 추가한다. 볼륨 삭제는 필요 없다.
+- 기존 계좌의 알 수 없는 은행명은 `null`이다. 기존 Asset 은행 코드는 Refresh 또는 정기 스냅샷 조회로 보충된다.
+- Protobuf는 기존 번호를 유지하고 `AccountCreatedEvent.bank_name=10`, 스냅샷 응답 `bank_code=7`, `bank_name=8`만 추가한다.
+- Auth·Work 소스는 변경하지 않는다. 생성 요청의 은행 코드와 은행명이 실제로 일치하는지 검증하는 은행 목록 기능은 이번 범위가 아니다.
+
+목록 응답 예:
+
+```json
+[{"accountId": "123456789", "bankCode": "088", "bankName": "테스트 은행", "balance": 100000, "status": "ACTIVE"}]
+```
+
+검증 기록 (2026-10-14): Banking 93건, Asset 43건, Mock Banking 일반 테스트 24건, Infra 도구 테스트 1건 통과.
+H2 마이그레이션 검증을 포함한다. 이후 별도 Compose 프로젝트 `moaje-bankinfo-20261014`에서 최신 Banking·Asset·Mock 이미지를 빌드하여 Gateway 경유 연동 25개 항목도 모두 통과했다.
+은행 코드 088·004의 본인 계좌 두 개와 090의 타인 계좌를 만들고, 이벤트 소비·실제 Redis 저장·스냅샷 gRPC·목록·상세·거래내역·소유권 차단을 검증했다.
+JWT 없는 요청은 401, 타인 계좌의 상세·거래목록·Refresh는 403, 타인 거래 단건은 404였다. 위조 사용자 헤더도 다른 사용자 계좌를 노출하지 않았다.
+결과는 [은행 정보 연동 검증 결과](bank-information-test-20261014.json)에 기록한다. 테스트는 Work를 기동하지 않은 관련 서비스 검증이며 전체 앱의 종합 회귀 테스트는 아니다.
+이전 API PDF는 이번 수정에 포함하지 않았다.
+
+### 계좌 선택 후 무한 스크롤 검증 (2026-10-14)
+
+- 별도 Compose 환경에서 Mock API로 거래를 생성하고 Refresh로 Asset에 반영했다. 애플리케이션 코드는 추가 수정하지 않았다.
+- 0건 → `[0]`, 50건 → `[50]`, 51건 → `[50, 1]`, 100건 → `[50, 50]`, 123건 → `[50, 50, 23]`으로 조회됐다.
+- 상세의 `transactionHistory`와 커서 없는 `/transactions`의 첫 페이지·커서·`hasNext`가 일치했다.
+- `nextCursor`는 반환한 마지막 `transactionId`와 같았다. 마지막 페이지는 `hasNext=false`, `nextCursor=null`이다.
+- 123개 ID를 MySQL 공개 거래 원본과 전부 비교해 누락·중복이 없음을 확인했다. 다른 본인 계좌의 7건도 섞이지 않았다.
+- 같은 커서 재요청, 스크롤 중 신규 거래 추가, 타인 JWT로 다음 페이지 요청도 검증했다. 타인 요청은 403이었다.
+- 결과: [검증 기록](account-pagination-test-20261014.json) 59개 항목 통과, JavaScript 숫자 정밀도 경고 1개. 테스트 데이터와 볼륨은 삭제했다.
+- 주의: 현재 큰 정수 ID가 JSON 숫자로 반환된다. JavaScript Number와 동일한 IEEE 754 변환으로 `accountId`가 반올림됐고, 그 ID의 상세 조회는 404였다. 커서도 값이 변했지만 이번 표본의 두 번째 페이지 결과는 같았다.
+- 위 경고는 변경 전 검증 결과이다. 이후 Banking의 `accountId`·`transferId`, Asset의 `accountId`·`transactionId`·`nextCursor` 응답을 문자열로 변경했다. 금액은 숫자, 마지막 커서는 null을 유지하며 DB·gRPC·Kafka 내부 타입은 바꾸지 않았다.
+- 앱은 응답 문자열을 그대로 저장하고 URL·쿼리·송금 본문의 `withdrawalAccountId`에 그대로 넣는다. `Number()`로 변환하지 않는다. 서버는 문자열 ID를 내부 Long으로 해석한다.
+- 새 검증 결과는 [문자열 ID 무한 스크롤 검증](account-pagination-string-ids-test-20261014.json)에 남긴다.
+- 변경 후 검증은 67개 항목 모두 통과했다. 실제 JavaScript `JSON.parse`에서 문자열 ID가 유지되고, 그 계좌 ID·커서로 상세 및 다음 페이지를 다시 조회했다. 배포된 Swagger 응답 스키마 7개 ID 필드도 string으로 확인했다.
+- 최종 일반 테스트는 Banking 95건, Asset 44건, Mock Banking 24건 통과했다. Infra 도구 테스트 1건도 통과했다. 이전 경고 결과는 변경 이력으로 보존한다.
+
+재검증은 `tests/docker-compose.bank-information.yaml`을 기본 Compose에 덧붙여 별도 프로젝트로 실행한다. 프로젝트 이름과 `MOAJE_STACK_PREFIX`는 모두 `moaje-bankinfo-20261014`로 지정하며, `MOAJE_GRPC_CERTS_DIR`도 별도 테스트 디렉터리로 지정한다. Gateway·Mock은 각각 19080·19081 포트를 사용한다.
+`tests/account-pagination-e2e.py`에는 Python과 JavaScript 검증용 Node.js가 필요하다. `MOAJE_TEST_NODE`에 Node 실행 경로, `MOCK_HMAC`에 로컬 Mock HMAC 키를 지정한다. 인증 키는 문서나 결과 파일에 기록하지 않는다.
+검증 후에는 반드시 같은 `-p`와 Compose 파일 조합으로 `down --volumes`를 실행해 해당 테스트 볼륨만 정리한다.
+
 ## 1. 사전 준비
 
 - Docker Desktop을 실행한다.
@@ -96,6 +142,7 @@ http://localhost:8090
   "userName": "송금 테스트",
   "phoneNumber": "01000000001",
   "bankCode": "001",
+  "bankName": "테스트 은행",
   "productName": "송금 계좌",
   "initialBalance": 100000
 }
@@ -109,6 +156,7 @@ http://localhost:8090
   "userName": "수취 테스트",
   "phoneNumber": "01000000002",
   "bankCode": "001",
+  "bankName": "테스트 은행",
   "productName": "수취 계좌",
   "initialBalance": 0
 }

@@ -9,6 +9,7 @@
 | [2026-10-11 통합 테스트 결과](integration-test-results-20261011.md) | 최신 Auth·Work 연동, 실제 장애 주입 결과와 미해결 사항 |
 | [Gateway·페르소나 후속 검증](gateway-persona-retest-20261011.md) | JWT 없는 잠금 해제, 최신 규격의 화면·스크립트 데이터 생성 |
 | [통합 API 테스트 가이드](integrated-api-test-guide.md) | 통합 Swagger로 Auth·Banking·Asset 흐름을 직접 검증하는 절차 |
+| [프론트엔드 API 목록 PDF](../output/pdf/moaje-frontend-api-guide-20261011.pdf) | 2026-10-14 갱신: 계좌 목록, 은행 정보, 문자열 ID·커서 규격 포함 |
 | [Kafka Topic 정리](kafka-topics.md) | 서비스별 발행·소비 토픽과 미확정 계약 |
 | [공통 계약](https://github.com/Team-MOAJE/moaje-grpc-contracts/tree/main/proto) | gRPC·Kafka 메시지의 Protobuf 원본 |
 | [Phase별 기록·회고](phase-history-and-retrospective.md) | 네 모듈의 변화, 검증 결과, 남은 일, 문서 통합 내역 |

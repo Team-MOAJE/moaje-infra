@@ -63,7 +63,7 @@ ACCOUNT_BODY=$(jq -anc \
     --arg ci "$PERSONA_CI" \
     --arg phone "$PERSONA_PHONE" \
     --arg productName "$PERSONA_PRODUCT" \
-    '{ci:$ci,userName:"월간 집계 테스트",phoneNumber:$phone,bankCode:"001",productName:$productName,initialBalance:500000}')
+    '{ci:$ci,userName:"월간 집계 테스트",phoneNumber:$phone,bankCode:"001",bankName:"테스트 은행",productName:$productName,initialBalance:500000}')
 ACCOUNT_RESPONSE=$(curl --fail-with-body -sS -X POST "$GATEWAY_URL/api/v1/banking/accounts" \
     -H "Authorization: Bearer $JWT" \
     -H 'Content-Type: application/json' \
