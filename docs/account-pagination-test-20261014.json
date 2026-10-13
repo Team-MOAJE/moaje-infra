@@ -1,0 +1,302 @@
+[
+  {
+    "name": "현행 Auth 회원가입",
+    "status": "PASS",
+    "detail": "HTTP 201"
+  },
+  {
+    "name": "Auth 로그인",
+    "status": "PASS",
+    "detail": "HTTP 200"
+  },
+  {
+    "name": "현행 Auth 회원가입",
+    "status": "PASS",
+    "detail": "HTTP 201"
+  },
+  {
+    "name": "Auth 로그인",
+    "status": "PASS",
+    "detail": "HTTP 200"
+  },
+  {
+    "name": "Banking 계좌 생성 088",
+    "status": "PASS",
+    "detail": "HTTP 201; bankCode=088; bankName=검증은행 A"
+  },
+  {
+    "name": "Banking 계좌 생성 004",
+    "status": "PASS",
+    "detail": "HTTP 201; bankCode=004; bankName=검증은행 B"
+  },
+  {
+    "name": "0건 상세와 첫 페이지 일치",
+    "status": "PASS",
+    "detail": "첫 페이지 0건; 은행 088"
+  },
+  {
+    "name": "0건 선택 계좌 은행 정보 유지",
+    "status": "PASS",
+    "detail": "088 / 검증은행 A"
+  },
+  {
+    "name": "0건 1페이지 정렬·계좌 분리",
+    "status": "PASS",
+    "detail": "0건; ID 내림차순; A 계좌 거래만 포함"
+  },
+  {
+    "name": "0건 마지막 페이지 종료",
+    "status": "PASS",
+    "detail": "hasNext=false, nextCursor=null"
+  },
+  {
+    "name": "0건 페이지 크기",
+    "status": "PASS",
+    "detail": "expected=[0], actual=[0]"
+  },
+  {
+    "name": "0건 전체 중복·누락 없음",
+    "status": "PASS",
+    "detail": "조회 0건, 고유 ID 0건"
+  },
+  {
+    "name": "0건 페이지 간 정렬",
+    "status": "PASS",
+    "detail": "전체 ID 내림차순"
+  },
+  {
+    "name": "50건 상세와 첫 페이지 일치",
+    "status": "PASS",
+    "detail": "첫 페이지 50건; 은행 088"
+  },
+  {
+    "name": "50건 선택 계좌 은행 정보 유지",
+    "status": "PASS",
+    "detail": "088 / 검증은행 A"
+  },
+  {
+    "name": "50건 1페이지 정렬·계좌 분리",
+    "status": "PASS",
+    "detail": "50건; ID 내림차순; A 계좌 거래만 포함"
+  },
+  {
+    "name": "50건 마지막 페이지 종료",
+    "status": "PASS",
+    "detail": "hasNext=false, nextCursor=null"
+  },
+  {
+    "name": "50건 페이지 크기",
+    "status": "PASS",
+    "detail": "expected=[50], actual=[50]"
+  },
+  {
+    "name": "50건 전체 중복·누락 없음",
+    "status": "PASS",
+    "detail": "조회 50건, 고유 ID 50건"
+  },
+  {
+    "name": "50건 페이지 간 정렬",
+    "status": "PASS",
+    "detail": "전체 ID 내림차순"
+  },
+  {
+    "name": "50건 마지막 ID 이후 재요청",
+    "status": "PASS",
+    "detail": "빈 배열, hasNext=false, nextCursor=null"
+  },
+  {
+    "name": "51건 상세와 첫 페이지 일치",
+    "status": "PASS",
+    "detail": "첫 페이지 50건; 은행 088"
+  },
+  {
+    "name": "51건 선택 계좌 은행 정보 유지",
+    "status": "PASS",
+    "detail": "088 / 검증은행 A"
+  },
+  {
+    "name": "51건 1페이지 정렬·계좌 분리",
+    "status": "PASS",
+    "detail": "50건; ID 내림차순; A 계좌 거래만 포함"
+  },
+  {
+    "name": "51건 1페이지 커서",
+    "status": "PASS",
+    "detail": "마지막 거래 ID가 다음 커서이며 이전 커서를 반복하지 않음"
+  },
+  {
+    "name": "51건 2페이지 정렬·계좌 분리",
+    "status": "PASS",
+    "detail": "1건; ID 내림차순; A 계좌 거래만 포함"
+  },
+  {
+    "name": "51건 마지막 페이지 종료",
+    "status": "PASS",
+    "detail": "hasNext=false, nextCursor=null"
+  },
+  {
+    "name": "51건 페이지 크기",
+    "status": "PASS",
+    "detail": "expected=[50, 1], actual=[50, 1]"
+  },
+  {
+    "name": "51건 전체 중복·누락 없음",
+    "status": "PASS",
+    "detail": "조회 51건, 고유 ID 51건"
+  },
+  {
+    "name": "51건 페이지 간 정렬",
+    "status": "PASS",
+    "detail": "전체 ID 내림차순"
+  },
+  {
+    "name": "51건 마지막 ID 이후 재요청",
+    "status": "PASS",
+    "detail": "빈 배열, hasNext=false, nextCursor=null"
+  },
+  {
+    "name": "100건 상세와 첫 페이지 일치",
+    "status": "PASS",
+    "detail": "첫 페이지 50건; 은행 088"
+  },
+  {
+    "name": "100건 선택 계좌 은행 정보 유지",
+    "status": "PASS",
+    "detail": "088 / 검증은행 A"
+  },
+  {
+    "name": "100건 1페이지 정렬·계좌 분리",
+    "status": "PASS",
+    "detail": "50건; ID 내림차순; A 계좌 거래만 포함"
+  },
+  {
+    "name": "100건 1페이지 커서",
+    "status": "PASS",
+    "detail": "마지막 거래 ID가 다음 커서이며 이전 커서를 반복하지 않음"
+  },
+  {
+    "name": "100건 2페이지 정렬·계좌 분리",
+    "status": "PASS",
+    "detail": "50건; ID 내림차순; A 계좌 거래만 포함"
+  },
+  {
+    "name": "100건 마지막 페이지 종료",
+    "status": "PASS",
+    "detail": "hasNext=false, nextCursor=null"
+  },
+  {
+    "name": "100건 페이지 크기",
+    "status": "PASS",
+    "detail": "expected=[50, 50], actual=[50, 50]"
+  },
+  {
+    "name": "100건 전체 중복·누락 없음",
+    "status": "PASS",
+    "detail": "조회 100건, 고유 ID 100건"
+  },
+  {
+    "name": "100건 페이지 간 정렬",
+    "status": "PASS",
+    "detail": "전체 ID 내림차순"
+  },
+  {
+    "name": "100건 마지막 ID 이후 재요청",
+    "status": "PASS",
+    "detail": "빈 배열, hasNext=false, nextCursor=null"
+  },
+  {
+    "name": "123건 상세와 첫 페이지 일치",
+    "status": "PASS",
+    "detail": "첫 페이지 50건; 은행 088"
+  },
+  {
+    "name": "123건 선택 계좌 은행 정보 유지",
+    "status": "PASS",
+    "detail": "088 / 검증은행 A"
+  },
+  {
+    "name": "123건 1페이지 정렬·계좌 분리",
+    "status": "PASS",
+    "detail": "50건; ID 내림차순; A 계좌 거래만 포함"
+  },
+  {
+    "name": "123건 1페이지 커서",
+    "status": "PASS",
+    "detail": "마지막 거래 ID가 다음 커서이며 이전 커서를 반복하지 않음"
+  },
+  {
+    "name": "123건 2페이지 정렬·계좌 분리",
+    "status": "PASS",
+    "detail": "50건; ID 내림차순; A 계좌 거래만 포함"
+  },
+  {
+    "name": "123건 2페이지 커서",
+    "status": "PASS",
+    "detail": "마지막 거래 ID가 다음 커서이며 이전 커서를 반복하지 않음"
+  },
+  {
+    "name": "123건 3페이지 정렬·계좌 분리",
+    "status": "PASS",
+    "detail": "23건; ID 내림차순; A 계좌 거래만 포함"
+  },
+  {
+    "name": "123건 마지막 페이지 종료",
+    "status": "PASS",
+    "detail": "hasNext=false, nextCursor=null"
+  },
+  {
+    "name": "123건 페이지 크기",
+    "status": "PASS",
+    "detail": "expected=[50, 50, 23], actual=[50, 50, 23]"
+  },
+  {
+    "name": "123건 전체 중복·누락 없음",
+    "status": "PASS",
+    "detail": "조회 123건, 고유 ID 123건"
+  },
+  {
+    "name": "123건 페이지 간 정렬",
+    "status": "PASS",
+    "detail": "전체 ID 내림차순"
+  },
+  {
+    "name": "123건 마지막 ID 이후 재요청",
+    "status": "PASS",
+    "detail": "빈 배열, hasNext=false, nextCursor=null"
+  },
+  {
+    "name": "123건 API와 MySQL 원본 ID 전부 일치",
+    "status": "PASS",
+    "detail": "50+50+23건이 DB 원본의 동일 123개 ID와 일치"
+  },
+  {
+    "name": "같은 커서 재요청 결과 유지",
+    "status": "PASS",
+    "detail": "동일한 두 번째 50건 반환"
+  },
+  {
+    "name": "다른 본인 계좌의 거래는 별도 조회",
+    "status": "PASS",
+    "detail": "B 계좌 7건이 A 계좌 123건에 섞이지 않음"
+  },
+  {
+    "name": "스크롤 도중 새 거래가 생겨도 기존 페이지 안정",
+    "status": "PASS",
+    "detail": "새 거래는 다음 첫 페이지 조회에서 표시, 기존 123건은 중복·누락 없이 유지"
+  },
+  {
+    "name": "첫 페이지 재조회에는 새 거래 포함",
+    "status": "PASS",
+    "detail": "신규 거래가 첫 페이지에 표시됨"
+  },
+  {
+    "name": "다음 페이지도 타인 JWT 접근 차단",
+    "status": "PASS",
+    "detail": "HTTP 403"
+  },
+  {
+    "name": "JavaScript Number 정밀도 점검",
+    "status": "WARN",
+    "detail": "accountId 반올림 변경=True; 반올림된 계좌 ID 상세 HTTP=404; cursor 반올림 변경=True; 다음 페이지 변경=False"
+  }
+]

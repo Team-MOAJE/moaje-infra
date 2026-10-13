@@ -1,2 +1,4 @@
 # Linux containers must receive LF shell scripts even after Windows checkout.
 *.sh text eol=lf
+# PDF는 바이트 위치가 중요하므로 Windows 줄바꿈 변환 대상에서 제외한다.
+*.pdf binary

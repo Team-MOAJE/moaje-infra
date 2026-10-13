@@ -51,6 +51,8 @@ class FixtureAuthContractTest(unittest.TestCase):
         self.assertNotIn('email', login)
         self.assertEqual(registration['phone_number'], login['phone_number'])
         self.assertEqual(registration['phone_number'], account['phoneNumber'])
+        self.assertEqual(account['bankCode'], '001')
+        self.assertEqual(account['bankName'], '테스트 은행')
         self.assertEqual(registration['phone_number'], result['phoneNumber'])
         self.assertNotIn('access_token', result)
         self.assertEqual(result['createdTransactionCount'], 8)

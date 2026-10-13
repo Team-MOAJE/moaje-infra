@@ -36,7 +36,7 @@ async def financial(users):
     after = (await b.CLIENT.get('http://fault-proxy:18081/__control')).json()['transfer_posts']
     rows = await b.query('banking', "select transfer_id,status from banking_transfer where idempotency_key='race-verified'")
     b.record('같은 키 동시 12건 DB 1행·Mock 1회', len(rows) == 1 and after - before == 1 and
-             all(r[0] == 200 and r[1].get('transferId') == rows[0]['transfer_id'] for r in results),
+             all(r[0] == 200 and r[1].get('transferId') == str(rows[0]['transfer_id']) for r in results),
              f'DB행={len(rows)}, Mock POST 증가={after-before}, HTTP상태={[r[0] for r in results]}')
     changed = await b.request('POST', '/api/v1/banking/transfers', sender, {
         'withdrawalAccountId': sender['account'], 'depositBankCode': '001',
@@ -249,7 +249,7 @@ async def crash(users, verify=False):
             before = lookup.json()['transfer_posts']
             code, result = await b.transfer(sender, receiver, 'e2e-crash-before-save', 11)
             after = (await b.CLIENT.get('http://fault-proxy:18081/__control')).json()['transfer_posts']
-            b.record('복구 거래 재요청 외부 재송금 없음', code == 200 and result.get('transferId') == tid and before == after,
+            b.record('복구 거래 재요청 외부 재송금 없음', code == 200 and result.get('transferId') == str(tid) and before == after,
                      f'Mock POST before={before}, after={after}')
             outbox = await b.poll(lambda: b.query('banking', 'select status from banking_outbox where aggregate_id=%s', (str(tid),)),
                                   lambda x: x and x[0]['status'] == 'PUBLISHED', 45)
@@ -276,7 +276,7 @@ async def fresh_profile(users):
     login = await b.call('신규 0원 사용자 로그인', 'POST', '/api/v1/auth/login', body={'phone_number': registration['phone_number'], 'pin': '123456'})
     user = {'id': str(r['data']['user_id']), 'token': login['data']['access_token'], 'ci': 'E2E-PROFILE-CI'}
     account = await b.call('신규 ACTIVE 0원 계좌 개설', 'POST', '/api/v1/banking/accounts', user,
-        {'ci': user['ci'], 'userName': '테스트 사용자', 'phoneNumber': '01000000000', 'bankCode': '001', 'productName': 'E2E-PROFILE', 'initialBalance': 0}, want=201)
+        {'ci': user['ci'], 'userName': '테스트 사용자', 'phoneNumber': '01000000000', 'bankCode': '001', 'bankName': '테스트 은행', 'productName': 'E2E-PROFILE', 'initialBalance': 0}, want=201)
     user['account'] = account['accountId']
     await b.poll(lambda: b.account_detail(user), lambda x: x[0] == 200)
     await b.call('정상 ACTIVE 0원 일별 계산', 'POST', '/api/v1/assets/cashflow/daily-limit', user,
