@@ -301,8 +301,8 @@ async def fixes(users):
     transaction = (await b.query('asset', 'select id from transaction_history where account_id=%s and visible_to_user=1 limit 1',
                                   (sender['account'],)))[0]['id']
     cases = [
-        ('타인 계좌 상세 ProblemDetail', 'GET', f"/api/v1/assets/accounts/{sender['account']}/detail", receiver, 403, 'DUPLICATE_AUTH'),
-        ('타인 계좌 refresh ProblemDetail', 'POST', f"/api/v1/assets/accounts/{sender['account']}/refresh", receiver, 403, 'DUPLICATE_AUTH'),
+        ('타인 계좌 상세 ProblemDetail', 'GET', f"/api/v1/assets/accounts/{sender['account']}/detail", receiver, 400, 'DUPLICATE_AUTH'),
+        ('타인 계좌 refresh ProblemDetail', 'POST', f"/api/v1/assets/accounts/{sender['account']}/refresh", receiver, 400, 'DUPLICATE_AUTH'),
         ('타인 계좌 목록 ProblemDetail', 'GET', f"/api/v1/assets/accounts/{sender['account']}/transactions", receiver, 403, 'DUPLICATE_AUTH'),
         ('다른 계좌 거래 ProblemDetail', 'GET', f"/api/v1/assets/accounts/{receiver['account']}/{transaction}/transaction", receiver, 404, 'NOT_FOUND_ACCOUNT_TRANSFER_HISTORY'),
         ('없는 계좌 상세 ProblemDetail', 'GET', '/api/v1/assets/accounts/999999999/detail', sender, 404, 'ACCOUNT_NOT_FOUND'),

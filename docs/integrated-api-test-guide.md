@@ -9,7 +9,7 @@
 - 예: `"bankCode": "088", "bankName": "테스트 은행"`. 코드는 앞자리 0이 유지되는 문자열이다.
 - `bankCode`는 최대 20자, `bankName`은 최대 100자이며 공백만 보낸 요청은 400으로 거절한다. 양끝 공백은 제거한다.
 - `GET /api/v1/assets/accounts`는 JWT 소유자의 계좌 목록을 반환한다. 미연동 사용자는 빈 배열을 받는다.
-- 목록 항목은 `accountId`, `bankCode`, `bankName`, `balance`, `status`이다. 닫힌 계좌도 상태와 함께 반환한다.
+- 목록 항목은 `accountId`, `bankCode`, `bankName`, `maskedAccountNumber`, `balance`, `status`이다. 닫힌 계좌도 상태와 함께 반환한다.
 - 상세 조회와 Refresh 응답에도 같은 은행 정보를 포함한다. 계좌 생성 직후에는 Kafka 소비까지 잠시 기다려야 목록에 나타날 수 있다.
 - Banking V7, Asset V6 마이그레이션이 기존 볼륨에 컬럼을 추가한다. 볼륨 삭제는 필요 없다.
 - 기존 계좌의 알 수 없는 은행명은 `null`이다. 기존 Asset 은행 코드는 Refresh 또는 정기 스냅샷 조회로 보충된다.
@@ -19,7 +19,7 @@
 목록 응답 예:
 
 ```json
-[{"accountId": "123456789", "bankCode": "088", "bankName": "테스트 은행", "balance": 100000, "status": "ACTIVE"}]
+[{"accountId": "123456789", "bankCode": "088", "bankName": "테스트 은행", "maskedAccountNumber": "**********1234", "balance": 100000, "status": "ACTIVE"}]
 ```
 
 검증 기록 (2026-10-14): Banking 93건, Asset 43건, Mock Banking 일반 테스트 24건, Infra 도구 테스트 1건 통과.
@@ -164,16 +164,25 @@ http://localhost:8090
 
 응답의 `accountId`는 Banking이 관리하는 계좌 ID다. 현재 Auth 개인정보 RPC가 완성되지 않아 계좌 개설 요청이 CI와 전화번호를 직접 받으므로 가짜 값만 사용한다.
 
-## 5. Mock 수취 계좌번호 확인
+## 5. 수취 계좌번호 확인
 
-실제 계좌번호는 Banking 응답에 노출하지 않는다. 로컬 테스트에서만 Mock Redis의 계좌를 확인한다.
+개설 응답의 `accountNumber`가 실제 수취 계좌번호이다. Redis에 직접 접속할 필요가 없다.
 
-```powershell
-docker compose exec -T mock-redis redis-cli --scan --pattern "{banking}:account:*"
-docker compose exec -T mock-redis redis-cli HGETALL "{banking}:account:조회된계좌번호"
+```json
+{"accountId":"123456789012345679","accountNumber":"12345678901234","maskedAccountNumber":"**********1234"}
 ```
 
-`productName`이 `수취 계좌`인 레코드의 계좌번호를 송금 요청에 사용한다.
+예시는 가상 값이다. `accountId`는 앱의 계좌 선택·상세·거래내역·Refresh 및 송금의 출금 계좌(`withdrawalAccountId`)에 사용한다.
+`accountNumber`는 표시·복사 및 수취 계좌(`depositAccountNumber`) 지정에 사용한다. 요청에서 두 값을 서로 바꾸지 않는다.
+목록은 마스킹 값만 반환한다. 상세·Refresh는 본인 소유권 확인 후 14자리 `accountNumber`를 반환하며, `displayAccountNumber`·`maskedAccountNumber` 필드는 제외한다. 복사 버튼은 클라이언트에서 구현한다.
+상세·Refresh의 소유권 불일치는 400, JWT 누락·변조·만료는 Gateway에서 401로 거절한다. 원번호 조회 장애는 잘못된 사용자 요청이 아니므로 502로 처리한다.
+원번호는 Asset 장부·Redis 캐시·Kafka·정기 스냅샷에 저장하거나 포함하지 않는다. DB 트랜잭션 밖에서 Asset 전용 mTLS RPC로 조회해 응답 직전에 붙이고 `Cache-Control: no-store`를 적용한다.
+Banking은 원번호 RPC의 principalId와 실제 소유자를 다시 비교한다. 같은 CA의 Work 인증서는 해당 RPC를 사용할 수 없으며, Infra의 CN=asset 인증서만 허용한다. 로컬 TLS 비활성 연결도 원번호 RPC에는 허용하지 않는다.
+Kafka 계좌 생성 이벤트와 gRPC 스냅샷도 마스킹 값만 포함한다. 기존 Asset 계좌는 V7 마이그레이션 후 Refresh 또는 정기 스냅샷으로 보충되고, 확인 전에는 null이다.
+
+검증 기록: [개설 응답 기반 송금 검증](account-number-transfer-test-20261014.json) 33개 항목 통과. 개설 응답만으로 실제 송금하고 상세·새로고침의 전체 번호, 목록의 마스킹 번호를 확인했다. 타인 상세 400, JWT 누락·위조 401, 타인 출금 403도 확인했다. Redis 상세 캐시에는 전체 번호가 없으며, 상세 응답에는 `Cache-Control: no-store`가 있다. Outbox와 실제 Kafka 원본 바이트에도 전체 번호가 없다.
+이 변경 이후 무한 스크롤·문자열 ID 왕복 검증 67개 항목을 재실행하여 통과했다. 일반 테스트는 Banking 102건·Asset 46건·Mock 24건 통과했다. 실제 Work 인증서로 새 번호 조회 RPC를 호출하면 `PERMISSION_DENIED`로 차단되는 것도 별도로 확인했다. 기존 볼륨은 유지하고 검증용 볼륨만 정리했다.
+테스트 도구의 첫 실행은 HTTP 헤더 이름의 대소문자 비교 때문에 실패했다. 헤더 이름을 대소문자 구분 없이 비교하도록 수정하고 같은 검증을 다시 통과했다. 페이지 테스트의 첫 재실행은 `MOCK_HMAC` 환경변수 누락으로 중단됐으며, 값을 제공한 재실행은 통과했다. 두 건 모두 애플리케이션 실패가 아니다.
 
 ## 6. 송금과 멱등성 확인
 
@@ -189,7 +198,7 @@ Idempotency-Key: swagger-transfer-001
 
 ```json
 {
-  "withdrawalAccountId": 123456789,
+  "withdrawalAccountId": "123456789012345679",
   "depositBankCode": "001",
   "depositAccountNumber": "수취 계좌번호",
   "amount": 10000,

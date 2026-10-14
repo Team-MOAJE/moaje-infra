@@ -1,0 +1,167 @@
+[
+  {
+    "name": "현행 Auth 회원가입",
+    "status": "PASS",
+    "detail": "HTTP 201"
+  },
+  {
+    "name": "Auth 로그인",
+    "status": "PASS",
+    "detail": "HTTP 200"
+  },
+  {
+    "name": "현행 Auth 회원가입",
+    "status": "PASS",
+    "detail": "HTTP 201"
+  },
+  {
+    "name": "Auth 로그인",
+    "status": "PASS",
+    "detail": "HTTP 200"
+  },
+  {
+    "name": "Banking 계좌 생성 088",
+    "status": "PASS",
+    "detail": "HTTP 201; bankCode=088; bankName=검증은행 A"
+  },
+  {
+    "name": "Banking 계좌 생성 004",
+    "status": "PASS",
+    "detail": "HTTP 201; bankCode=004; bankName=검증은행 B"
+  },
+  {
+    "name": "개설 응답의 계좌번호·내부 ID 구분 088",
+    "status": "PASS",
+    "detail": "실제 계좌번호와 내부 accountId가 서로 다른 문자열"
+  },
+  {
+    "name": "개설 응답의 마스킹 088",
+    "status": "PASS",
+    "detail": "끝 네 자리만 표시"
+  },
+  {
+    "name": "개설 응답의 계좌번호·내부 ID 구분 004",
+    "status": "PASS",
+    "detail": "실제 계좌번호와 내부 accountId가 서로 다른 문자열"
+  },
+  {
+    "name": "개설 응답의 마스킹 004",
+    "status": "PASS",
+    "detail": "끝 네 자리만 표시"
+  },
+  {
+    "name": "목록의 ID·은행 정보·마스킹 연결",
+    "status": "PASS",
+    "detail": "목록 선택 값은 accountId, 화면 표시 값은 maskedAccountNumber"
+  },
+  {
+    "name": "목록에 원번호 없음",
+    "status": "PASS",
+    "detail": "마스킹 필드만 제공"
+  },
+  {
+    "name": "선택한 accountId로 상세 조회",
+    "status": "PASS",
+    "detail": "HTTP 200; 전체 번호만 제공"
+  },
+  {
+    "name": "상세 HTTP 캐시 금지",
+    "status": "PASS",
+    "detail": "Cache-Control: no-store (HTTP 헤더 이름은 대소문자를 구분하지 않음)"
+  },
+  {
+    "name": "Redis 상세 캐시에 원번호 없음",
+    "status": "PASS",
+    "detail": "캐시의 accountNumber=null"
+  },
+  {
+    "name": "상세 인증 거절 타인 JWT",
+    "status": "PASS",
+    "detail": "HTTP 400"
+  },
+  {
+    "name": "상세 인증 거절 JWT 누락",
+    "status": "PASS",
+    "detail": "HTTP 401"
+  },
+  {
+    "name": "상세 인증 거절 JWT 변조",
+    "status": "PASS",
+    "detail": "HTTP 401"
+  },
+  {
+    "name": "계좌번호를 조회 ID로 사용하면 찾지 못함",
+    "status": "PASS",
+    "detail": "HTTP 404; 계좌번호 자동 변환 없음"
+  },
+  {
+    "name": "accountId 없는 상세 조회 경로 없음",
+    "status": "PASS",
+    "detail": "HTTP 404"
+  },
+  {
+    "name": "출금 계좌번호만으로 송금 불가",
+    "status": "PASS",
+    "detail": "HTTP 400"
+  },
+  {
+    "name": "거절 요청은 거래를 생성하지 않음",
+    "status": "PASS",
+    "detail": "거래 Row 0건"
+  },
+  {
+    "name": "다른 JWT 사용자에게 출금 권한 없음",
+    "status": "PASS",
+    "detail": "HTTP 403"
+  },
+  {
+    "name": "개설 응답만으로 실제 송금 성공",
+    "status": "PASS",
+    "detail": "HTTP 200; COMPLETED"
+  },
+  {
+    "name": "같은 송금 재시도는 같은 거래",
+    "status": "PASS",
+    "detail": "동일 transferId"
+  },
+  {
+    "name": "송금 후 잔액·전체번호 088",
+    "status": "PASS",
+    "detail": "잔액 19000원, 본인 원번호 일치"
+  },
+  {
+    "name": "송금 후 잔액·전체번호 004",
+    "status": "PASS",
+    "detail": "잔액 1000원, 본인 원번호 일치"
+  },
+  {
+    "name": "선택 계좌 거래목록",
+    "status": "PASS",
+    "detail": "송금 이력 한 건"
+  },
+  {
+    "name": "accountId·transactionId로 단건 조회",
+    "status": "PASS",
+    "detail": "HTTP 200"
+  },
+  {
+    "name": "타인 거래내역 접근 차단",
+    "status": "PASS",
+    "detail": "HTTP 403"
+  },
+  {
+    "name": "기존 계좌의 마스킹을 스냅샷으로 보충",
+    "status": "PASS",
+    "detail": "Mock → Banking gRPC → Asset 복구"
+  },
+  {
+    "name": "계좌 생성 Outbox에는 원번호 없음",
+    "status": "PASS",
+    "detail": "원번호 미포함, 마스킹 포함"
+  },
+  {
+    "name": "실제 Kafka 이벤트에도 원번호 없음",
+    "status": "PASS",
+    "detail": "Kafka 원본 바이트 확인"
+  }
+]

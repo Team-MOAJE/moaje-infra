@@ -12,10 +12,7 @@ b.REPORT = ROOT.parent / 'docs/account-pagination-string-ids-test-20261014.json'
 
 
 def account_number(owner, account):
-    return subprocess.check_output([
-        'docker', 'exec', 'moaje-bankinfo-20261014-mock-redis', 'redis-cli', '--raw', 'GET',
-        '{banking}:account-owner:' + owner['ci'] + ':' + account['bankCode'] + ':test-' + account['bankCode'],
-    ], text=True).strip()
+    return account['accountNumber']
 
 
 def mock_token(owner):
