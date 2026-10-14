@@ -13,9 +13,11 @@ GATEWAY = os.getenv('BANK_INFO_GATEWAY', 'http://127.0.0.1:19080')
 MOCK = os.getenv('BANK_INFO_MOCK', 'http://127.0.0.1:19081')
 REPORT = Path(__file__).resolve().parents[1] / 'docs/bank-information-test-20261014.json'
 ROWS = []
+LAST_RESPONSE_HEADERS = {}
 
 
 def request(method, path, body=None, token=None, base=GATEWAY, headers=None, signed=False):
+    global LAST_RESPONSE_HEADERS
     raw = json.dumps(body, ensure_ascii=False, separators=(',', ':')).encode() if body is not None else None
     hdr = {'Content-Type': 'application/json', **(headers or {})}
     if token:
@@ -28,6 +30,7 @@ def request(method, path, body=None, token=None, base=GATEWAY, headers=None, sig
     except urllib.error.HTTPError as error:
         response = error
     with response:
+        LAST_RESPONSE_HEADERS = dict(response.headers)
         data = response.read()
         return response.status, json.loads(data) if data else None
 
@@ -83,12 +86,8 @@ def withdraw(owner, opened, amount):
                             {'ci': owner['ci'], 'userName': '계좌 검증 사용자', 'phoneNumber': owner['phone']}, base=MOCK)
     assert status == 200
     account_id = opened['accountId']
-    # 테스트 DB 읽기는 결과 확인용이다. 거래 생성은 반드시 Mock API를 사용한다.
-    import subprocess
-    number = subprocess.check_output([
-        'docker', 'exec', 'moaje-bankinfo-20261014-mock-redis', 'redis-cli', '--raw', 'GET',
-        '{banking}:account-owner:' + owner['ci'] + ':' + opened['bankCode'] + ':test-' + opened['bankCode'],
-    ], text=True).strip()
+    # 개설 응답의 계좌번호를 그대로 사용한다. 프런트와 달리 Redis를 직접 읽는 우회가 필요하지 않다.
+    number = opened['accountNumber']
     status, account = request('POST', '/api/accounts/' + number + '/withdrawals',
                                {'amount': amount, 'merchantName': '검증 카페'}, token['accessToken'], base=MOCK, signed=True)
     check('Mock 계좌 은행 정보 ' + opened['bankCode'],
@@ -137,7 +136,7 @@ def main():
 
     for suffix, method in [('detail', 'GET'), ('transactions', 'GET'), ('refresh', 'POST')]:
         status, _ = request(method, f'/api/v1/assets/accounts/{accounts[0]["accountId"]}/{suffix}', token=other['token'])
-        check('타인 계좌 접근 거절 ' + suffix, status == 403, f'HTTP {status}')
+        check('타인 계좌 접근 거절 ' + suffix, status == (400 if suffix in ('detail', 'refresh') else 403), f'HTTP {status}')
     first_id = accounts[0]['accountId']
     _, page = request('GET', f'/api/v1/assets/accounts/{first_id}/transactions', token=owner['token'])
     status, _ = request('GET', f'/api/v1/assets/accounts/{first_id}/{page["transactions"][0]["transactionId"]}/transaction', token=other['token'])

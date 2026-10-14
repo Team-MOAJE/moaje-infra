@@ -1810,11 +1810,13 @@
         "status": "ACTIVE",
         "createdAt": "2026-10-11T03:00:00Z",
         "canceledAt": null,
-        "bankName": "테스트 은행"
+        "bankName": "테스트 은행",
+        "accountNumber": "12345678901234",
+        "maskedAccountNumber": "**********1234"
       },
       "note": "모든 요청 필드는 필수. initialBalance는 0 이상. userId는 구버전 호환용 선택 필드이며 보내지 않는다. 실제 소유자는 JWT로 결정된다. CI·이름·휴대폰은 현재 Auth 응답에서 얻을 수 없다. 실명확인된 CI 발급 기능으로 오해하지 말고 개발용 합성 값으로만 시연한다. 요청 자동 재시도 금지: 이 API에는 송금처럼 멱등성 보장이 없다. 실제 은행 연결 API가 아니다.",
       "store": "accountId는 계좌 선택 상태로 보관할 수 있다. 계좌 연결 해제·로그아웃 때 삭제. balance는 화면을 떠나거나 새로고침할 때 갱신한다. CI·PIN·휴대폰은 영구 저장하지 않는다.",
-      "resend": "accountId를 Asset 경로 및 송금 withdrawalAccountId에 사용. 개설 응답에는 실제 계좌번호가 없으므로 수취계좌번호로 사용하지 않는다.",
+      "resend": "accountId는 본인 조회·송금 withdrawalAccountId에 사용. accountNumber는 수취 depositAccountNumber에 사용. 두 값을 바꾸지 않는다.",
       "source": "moaje-banking/src/main/kotlin/com/moaje/banking/account/web/AccountController.kt",
       "status": 201,
       "params": [],
@@ -1861,8 +1863,6 @@
         "accountId": "123",
         "bankCode": "088",
         "bankName": "테스트 은행",
-        "displayAccountNumber": "ACCOUNT-123",
-        "maskedAccountNumber": "ACCOUNT-123",
         "balance": 90000,
         "syncStatus": "SYNCED",
         "refreshing": false,
@@ -1883,9 +1883,10 @@
           }
         ],
         "nextCursor": null,
-        "hasNext": false
+        "hasNext": false,
+        "accountNumber": "12345678901234"
       },
-      "note": "계좌 ID 필수. balance는 조회용 장부 값이지 출금 승인 잔액이 아니다. bankCode·bankName은 현재 null일 수 있고 ACCOUNT-123은 실제 계좌번호가 아니다. 최대 50건을 반환한다. 이후 페이지는 /transactions로 요청한다.",
+      "note": "상세·Refresh는 전체 계좌번호를 제공하며 마스킹 필드는 없다. 목록만 마스킹을 사용한다.",
       "store": "응답은 계좌 화면의 메모리 상태로 보관. 화면 진입·복귀·송금 완료·refresh 후 재조회. 거래 목록은 accountId별로 분리하고 refresh 시 목록과 커서를 함께 초기화. 금융 조회 결과에 서버가 정한 앱 보관 TTL은 없다.",
       "resend": "accountId는 Path. 단건에는 응답의 transactionId, 다음 페이지에는 nextCursor를 lastTransactionId로 사용. 나머지 잔액·상태·본문은 다시 보내지 않는다.",
       "source": "moaje-asset/src/main/kotlin/com/moaje/asset/account/web/AccountController.kt",
@@ -1893,7 +1894,8 @@
       "params": [],
       "operator": false,
       "auth": true,
-      "id": "API-11"
+      "id": "API-11",
+      "implementation_note": "JWT 검증 후 본인 accountId로만 조회. 소유권 불일치는 400, JWT 누락·유효하지 않음은 Gateway 401. 성공 시 14자리 accountNumber 제공. Cache-Control: no-store. 원번호 조회 장애는 502."
     },
     {
       "group": "Asset",
@@ -1974,8 +1976,6 @@
         "accountId": "123",
         "bankCode": "088",
         "bankName": "테스트 은행",
-        "displayAccountNumber": "ACCOUNT-123",
-        "maskedAccountNumber": "ACCOUNT-123",
         "balance": 90000,
         "syncStatus": "SYNCED",
         "refreshing": false,
@@ -1996,9 +1996,10 @@
           }
         ],
         "nextCursor": null,
-        "hasNext": false
+        "hasNext": false,
+        "accountNumber": "12345678901234"
       },
-      "note": "본문 없음. Banking을 거쳐 Mock 잔액·상태·거래내역을 동기화한다. 완료 후 첫 페이지를 새 응답으로 교체한다. 거래 상태와 동기화 상태는 서로 다르다. 연속 탭은 잠그고 기존 커서를 재사용하지 않는다.",
+      "note": "상세·Refresh는 전체 계좌번호를 제공하며 마스킹 필드는 없다. 목록만 마스킹을 사용한다.",
       "store": "응답은 계좌 화면의 메모리 상태로 보관. 화면 진입·복귀·송금 완료·refresh 후 재조회. 거래 목록은 accountId별로 분리하고 refresh 시 목록과 커서를 함께 초기화. 금융 조회 결과에 서버가 정한 앱 보관 TTL은 없다.",
       "resend": "accountId는 Path. 단건에는 응답의 transactionId, 다음 페이지에는 nextCursor를 lastTransactionId로 사용. 나머지 잔액·상태·본문은 다시 보내지 않는다.",
       "source": "moaje-asset/src/main/kotlin/com/moaje/asset/account/web/AccountController.kt",
@@ -2006,7 +2007,8 @@
       "params": [],
       "operator": false,
       "auth": true,
-      "id": "API-14"
+      "id": "API-14",
+      "implementation_note": "JWT 검증 후 본인 accountId로만 조회. 소유권 불일치는 400, JWT 누락·유효하지 않음은 Gateway 401. 성공 시 14자리 accountNumber 제공. Cache-Control: no-store. 원번호 조회 장애는 502."
     },
     {
       "group": "Asset",
@@ -2505,7 +2507,8 @@
           "bankCode": "088",
           "bankName": "테스트 은행",
           "balance": 100000,
-          "status": "ACTIVE"
+          "status": "ACTIVE",
+          "maskedAccountNumber": "**********1234"
         }
       ],
       "note": "JWT 소유자의 계좌만 반환. 미연동이면 빈 배열. 닫힌 계좌는 status=CLOSED로 반환.",

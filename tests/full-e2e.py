@@ -176,7 +176,7 @@ async def normal(users):
     record('Asset 내부 거래 연결 1건', history[0]['n'] == 1, str(history))
     work = await poll(lambda: query('work', 'select count(*) n from fds_inference_log where user_id=%s', (sender['id'],)), lambda x: x[0]['n'] >= 1)
     record('실제 Asset 성공 이벤트 Work 소비', work and work[0]['n'] >= 1, str(work))
-    await call('타인 계좌 상세 차단', 'GET', f"/api/v1/assets/accounts/{sender['account']}/detail", receiver, want=403)
+    await call('타인 계좌 상세 차단', 'GET', f"/api/v1/assets/accounts/{sender['account']}/detail", receiver, want=400)
     foreign = await request('POST', '/api/v1/banking/transfers', receiver, {
         'withdrawalAccountId': sender['account'], 'depositBankCode': '001', 'depositAccountNumber': receiver['number'], 'amount': 1, 'currency': 'KRW'}, {'Idempotency-Key': 'foreign-account'})
     record('타인 출금계좌 차단', foreign[0] == 403, f'HTTP={foreign[0]}')
@@ -337,7 +337,7 @@ async def independent(users):
     await call('거래 단건 조회', 'GET', f"/api/v1/assets/accounts/{sender['account']}/{all_ids[0]}/transaction", sender)
     wrong = await request('GET', f"/api/v1/assets/accounts/{receiver['account']}/{all_ids[0]}/transaction", receiver)
     record('다른 계좌 거래 ID 차단', 400 <= wrong[0] < 500, f'HTTP={wrong[0]}')
-    await call('타인 계좌 상세 차단', 'GET', f"/api/v1/assets/accounts/{sender['account']}/detail", receiver, want=403)
+    await call('타인 계좌 상세 차단', 'GET', f"/api/v1/assets/accounts/{sender['account']}/detail", receiver, want=400)
     await account_detail(sender, True)
     count = await query('asset', 'select count(*) n from transaction_history where account_id=%s', (sender['account'],))
     record('반복 refresh 거래 121건 유지', count[0]['n'] == 121, str(count))

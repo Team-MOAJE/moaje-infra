@@ -133,15 +133,16 @@ depositBankCode|돈을 받을 계좌의 은행 코드.
 depositAccountNumber|돈을 받을 계좌번호.
 amount|해당 거래·항목의 금액.
 currency|금액의 통화 코드. 기본값 KRW.
-accountId|계좌 선택·상세 조회에 사용하는 문자열 ID. Number로 변환하지 않음.
+accountId|계좌 선택·상세·거래내역 조회에 필수인 내부 문자열 ID. 계좌번호와 다름. Number 변환 금지.
+accountNumber|본인 소유권 확인 후 개설·상세·Refresh에 제공하는 14자리 전체 계좌번호. 표시·복사·수취용이며 조회·출금 ID로 사용하지 않음.
 transferId|Banking 송금의 문자열 ID. Asset 거래내역 ID와 다름. Number 변환 금지.
 publicTransferId|사용자 화면에 표시할 송금 번호.
 externalTransactionId|Mock Banking이 반환한 외부 거래 번호. 아직 없으면 null.
 balance|해당 계좌의 잔액. Asset 응답은 조회용으로 저장된 잔액.
 createdAt|항목 생성 시각.
 canceledAt|계좌 취소 시각. 취소되지 않았으면 null.
-displayAccountNumber|화면 표시용 계좌 문자열. 현재 ACCOUNT-내부ID 형식이며 실제 계좌번호가 아님.
-maskedAccountNumber|마스킹 계좌 표시용 필드. 현재 displayAccountNumber와 같은 대체 문자열.
+displayAccountNumber|상세 화면 표시용 마스킹 계좌번호. 끝 네 자리만 표시. 아직 확인하지 못한 기존 계좌는 null.
+maskedAccountNumber|끝 네 자리만 남긴 계좌번호. 목록·상세 표시용이며 수취 계좌번호로 사용할 수 없음. 확인 전에는 null.
 syncStatus|SYNCED=동기화됨, SYNC_REQUIRED=확인 필요, RECONCILING=갱신 중, STALE=최신화 실패.
 refreshing|계좌 정보 갱신이 진행 중인지 여부.
 refreshFailed|계좌 최신화 실패 상태인지 여부.
@@ -506,6 +507,7 @@ def schema_for(a):
     return {f['name']:f['type'] for f in fields(name.removeprefix('list[').removesuffix(']'))}
 
 NULL_TYPES={
+    'maskedAccountNumber':'String?','displayAccountNumber':'String?',
     'bankCode':'String?','bankName':'String?','targetAccountId':'String?',
     'merchantName':'String?','message':'String?','lastSyncedAt':'datetime | None',
     'nextCursor':'String | None','canceledAt':'datetime | None','externalTransactionId':'String?',
