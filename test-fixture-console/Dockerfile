@@ -2,6 +2,7 @@ FROM python:3.12-slim
 
 WORKDIR /app
 COPY app.py ./app.py
+COPY reset_agent.py ./reset_agent.py
 COPY static ./static
 
 EXPOSE 8090
