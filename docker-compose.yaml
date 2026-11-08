@@ -270,6 +270,11 @@ services:
       GATEWAY_URL: http://gateway:8080
       MOCK_BANKING_URL: http://mock-banking:8081
       FIXTURE_ADMIN_TOKEN: ${MOAJE_FIXTURE_ADMIN_TOKEN:-moaje-local-fixture-token}
+      DATA_DIR: /data
+      RESET_AGENT_URL: http://reset-agent:8091
+      RESET_AGENT_TOKEN: ${MOAJE_FIXTURE_ADMIN_TOKEN:-moaje-local-fixture-token}
+    volumes:
+      - fixture-console-data:/data
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health', timeout=2)"]
       interval: 5s
@@ -281,6 +286,25 @@ services:
         condition: service_started
       mock-banking:
         condition: service_started
+      reset-agent:
+        condition: service_started
+    restart: "no"
+
+  reset-agent:
+    # 로컬 시연 전용. Docker 제어 권한은 이 고정 작업 에이전트에만 부여한다.
+    # 외부 포트·임의 명령 실행 API를 제공하지 않고 Compose 라벨의 지정 서비스만 초기화한다.
+    profiles: ["test-tools"]
+    build:
+      context: ./test-fixture-console
+      dockerfile: Dockerfile
+    command: ["python", "reset_agent.py"]
+    environment:
+      RESET_AGENT_TOKEN: ${MOAJE_FIXTURE_ADMIN_TOKEN:-moaje-local-fixture-token}
+      RESET_EXTRA_MOCK_PROJECT: ${RESET_EXTRA_MOCK_PROJECT:-moaje-mock-banking}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - reset-agent-data:/data
+    mem_limit: 128m
     restart: "no"
 
   asset:
@@ -488,6 +512,8 @@ services:
     restart: "no"
 
 volumes:
+  reset-agent-data:
+  fixture-console-data:
   work-mysql-data:
   auth-mysql-data:
   asset-mysql-data:
