@@ -3,11 +3,9 @@
 Gateway와 로컬 통합 실행 환경을 관리합니다. Auth·Banking·Asset·Work·Mock은 별도 저장소이며, Compose로 연결합니다.
 
 - [공개 문서와 ADR](docs/README.md)
-- [개발 기록과 검증 결과](docs/phase-history-and-retrospective.md)
 - [Compose 설정](docker-compose.yaml)
 - [JWT 환경변수 안내](.env.example)
 - [연동 검사 스크립트](tests/compose-smoke.ps1)
-- [통합 Swagger·테스트 데이터 가이드](docs/integrated-api-test-guide.md)
 
 ## 로컬 실행
 
@@ -53,6 +51,4 @@ Auth 발급 함수로 테스트 JWT를 메모리에서 생성하며, 회원가�
 인증서는 `certs/work`에서 Work의 `/run/grpc`로 읽기 전용 연결됩니다. CA 개인키는 Work에 전달하지 않습니다.
 
 이전에 발견한 계약 불일치와 잔액 조회의 일수 0 문제는 해결됐습니다. 이번 Kafka 검사는 테스트 Protobuf를 실제 Work가 소비하는 범위이며 전체 금융 흐름 검증과는 구분합니다.
-성공 범위와 재현 명령은 [Work 연동 검사 결과](docs/work-integration-check.md)에 정리했습니다. 스키마 변경 때마다 볼륨을 삭제하는 운영 방식은 사용하지 않습니다.
-
-후속 격리 통합 재시험은 159개 검증 중 157개가 통과했습니다. Auth의 타인 계좌 토큰 발급과 Work의 집계 전 신규 사용자 프로필 조회는 실패하여 후속 수정이 필요합니다. 테스트 컨테이너·볼륨은 제거했고 기존 개발 볼륨은 보존했습니다. [시험 계획과 최신 결과](docs/full-integration-test-plan.md)를 참고하세요.
+스키마 변경 때마다 볼륨을 삭제하는 운영 방식은 사용하지 않습니다.
